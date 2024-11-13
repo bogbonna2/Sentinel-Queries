@@ -2,7 +2,7 @@ $tableParams = @'
 {
     "properties": {
         "schema": {
-            "name": "Crowdstrike_Replicator_logs_CL",
+            "name": "crowdstrike_network_CL",
             "columns": [
                 {
                     "name": "TimeGenerated",
@@ -21,4 +21,4 @@ $tableParams = @'
     }
 }
 '@
- Invoke-AzRestMethod -Path "/subscriptions/541e92e7-fd9c-49f9-afda-dce87ddb6402/resourcegroups/CI-DEMO-AZ-SENTINEL-RG/providers/microsoft.operationalinsights/workspaces/CI-DEMO-AZ-SENTINEL/tables/Crowdstrike_Replicator_logs_CL?api-version=2021-12-01-preview" -Method PUT -payload $tableParams
+ Invoke-AzRestMethod -Path "/subscriptions/<subscription ID>/resourcegroups/<resource group>/providers/microsoft.operationalinsights/workspaces/<workspace name>/tables/<table name>?api-version=2021-12-01-preview" -Method PUT -payload $tableParams
