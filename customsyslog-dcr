@@ -1,0 +1,89 @@
+{ 
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#", 
+    "contentVersion": "1.0.0.0", 
+    "parameters": { 
+        "dataCollectionRules_dcr_name": { 
+            "defaultValue": "Custom-MyCustomSysLog_CL", 
+            "type": "String" 
+        }, 
+        "dataCollectionEndpoints_dce_useast_externalid": { 
+            "defaultValue": "/subscriptions/2eff1c6d-f789-4be8-ab50-33d5b116d7a5/resourcegroups/sentinel_operations/providers/microsoft.operationalinsights/workspaces/SENTINEL-Equitable-LogAnalyticsWorkspace", 
+            "type": "String" 
+        }, 
+        "workspaces_ws_CI-DEMO-AZ-SENTINEL_externalid": { 
+            "defaultValue": "/subscriptions/2eff1c6d-f789-4be8-ab50-33d5b116d7a5/resourcegroups/sentinel_operations/providers/microsoft.operationalinsights/workspaces/SENTINEL-Equitable-LogAnalyticsWorkspace", 
+            "type": "String" 
+        } 
+    }, 
+    "variables": {}, 
+    "resources": [ 
+        { 
+            "type": "Microsoft.Insights/dataCollectionRules", 
+            "apiVersion": "2022-06-01", 
+            "name": "[parameters('dataCollectionRules_dcr_name')]", 
+            "location": "East US", 
+            "tags": { 
+                "owner": "na", 
+                "owner_team_email": "na", 
+                "ProjectName": "na", 
+                "ProjectNumber": "na", 
+                "ProjectRole": "na" 
+            }, 
+            "properties": { 
+                "dataCollectionEndpointId": "[parameters('dataCollectionEndpoints_dce_useast_externalid')]", 
+                "streamDeclarations": { 
+                    "Custom-MyLogFileFormat": { 
+            "columns": [
+                {
+                    "name": "TimeGenerated",
+                    "type": "DateTime"
+                },
+                {
+                    "name": "FilePath",
+                    "type": "string"
+                }
+            ]
+        },
+                "dataSources": { 
+                    "logFiles": [ 
+                        { 
+                            "streams": [ 
+                                "Custom-MyLogFileFormat" 
+                            ], 
+                            "filePatterns": [ 
+                                "/var/logs/*.log" 
+                            ], 
+                            "format": "text", 
+                            "settings": { 
+                                "text": { 
+                                    "recordStartTimestampFormat": "ISO 8601" 
+                                } 
+                            }, 
+                            "name": "[parameters('dataCollectionRules_dcr_name')]" 
+                        } 
+                    ] 
+                }, 
+                "destinations": { 
+                    "logAnalytics": [ 
+                        { 
+                            "workspaceResourceId": "[parameters('workspaces_ws_SENTINEL-Equitable-LogAnalyticsWorkspace_externalid')]", 
+                            "name": "SENTINEL-Equitable-LogAnalyticsWorkspace" 
+                        } 
+                    ] 
+                }, 
+                "dataFlows": [ 
+                    { 
+                        "streams": [ 
+                            "Custom-MyLogFileFormat" 
+                        ], 
+                        "destinations": [ 
+                            "SENTINEL-Equitable-LogAnalyticsWorkspace" 
+                        ], 
+                        "transformKql": "source", 
+                        "outputStream": "Custom-MyCustomSysLog_CL" 
+                    } 
+                ] 
+            } 
+        } 
+    ] 
+}
