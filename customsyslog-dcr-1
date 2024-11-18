@@ -1,0 +1,188 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "dataCollectionRules_dcr_name": {
+            "defaultValue": "Custom-MyCustomSysLog_CL",
+            "type": "String"
+        },
+        "dataCollectionEndpoints_dce_useast_externalid": {
+            "defaultValue": "/subscriptions/541e92e7-fd9c-49f9-afda-dce87ddb6402/resourcegroups/ci-demo-az-sentinel-rg/providers/microsoft.operationalinsights/workspaces/CI-DEMO-AZ-SENTINEL",
+            "type": "String"
+        },
+        "workspaces_ws_CI-DEMO-AZ-SENTINEL_externalid": {
+            "defaultValue": "/subscriptions/541e92e7-fd9c-49f9-afda-dce87ddb6402/resourcegroups/ci-demo-az-sentinel-rg/providers/microsoft.operationalinsights/workspaces/CI-DEMO-AZ-SENTINEL",
+            "type": "String"
+        }
+    },
+    "variables": {},
+    "resources": [
+        {
+            "type": "Microsoft.Insights/dataCollectionRules",
+            "apiVersion": "2022-06-01",
+            "name": "[parameters('dataCollectionRules_dcr_name')]",
+            "location": "East US",
+            "tags": {
+                "owner": "na",
+                "owner_team_email": "na",
+                "ProjectName": "na",
+                "ProjectNumber": "na",
+                "ProjectRole": "na"
+            },
+            "properties": {
+                "dataCollectionEndpointId": "[parameters('dataCollectionEndpoints_dce_useast_externalid')]",
+                "streamDeclarations": {
+                    "Custom-MyLogFileFormat": {
+"columns": [{
+                            "name": "Computer",
+                            "type": "string"
+                        },
+                        {
+                            "name": "EventTime",
+                            "type": "datetime"
+                        },
+                        {
+                            "name": "Facility",
+                            "type": "string"
+                        },
+                        {
+                            "name": "HostIP",
+                            "type": "string"
+                        },
+                        {
+                            "name": "HostName",
+                            "type": "string"
+                        },
+                        {
+                            "name": "ManagementGroupName",
+                            "type": "string"
+                        },
+                        {
+                            "name": "ProcessID",
+                            "type": "int"
+                        },
+                        {
+                            "name": "ProcessName",
+                            "type": "string"
+                        },
+                        {
+                            "name": "SeverityLevel",
+                            "type": "string"
+                        },
+                        {
+                            "name": "SourceSystem",
+                            "type": "string"
+                        },
+                        {
+                            "name": "SyslogMessage",
+                            "type": "string"
+                        },
+                        {
+                            "name": "TimeCollected",
+                            "type": "datetime"
+                        },
+                        {
+                            "name": "TimeGenerated",
+                            "type": "datetime"
+                        }
+                    ]
+                },
+                "Custom-WindowsEvent": {
+                    "columns": [{
+                            "name": "Channel",
+                            "type": "string"
+                        },
+                        {
+                            "name": "Computer",
+                            "type": "string"
+                        },
+                        {
+                            "name": "EventData",
+                            "type": "string"
+                        },
+                        {
+                            "name": "EventID",
+                            "type": "int"
+                        },
+                        {
+                            "name": "EventLevel",
+                            "type": "int"
+                        },
+                        {
+                            "name": "EventLevelName",
+                            "type": "string"
+                        },
+                        {
+                            "name": "EventOriginId",
+                            "type": "string"
+                        },
+                        {
+                            "name": "ManagementGroupName",
+                            "type": "string"
+                        },
+                        {
+                            "name": "Provider",
+                            "type": "string"
+                        },
+                        {
+                            "name": "RawEventData",
+                            "type": "string"
+                        },
+                        {
+                            "name": "SourceSystem",
+                            "type": "string"
+                        },
+                        {
+                            "name": "Task",
+                            "type": "int"
+                        },
+                        {
+                            "name": "TimeGenerated",
+                            "type": "datetime"
+                        }
+                    ]
+                }
+            },
+                "dataSources": {
+                    "logFiles": [
+                        {
+                            "streams": [
+                                "Custom-MyLogFileFormat"
+                            ],
+                            "filePatterns": [
+                                "/var/log/*.log"
+                            ],
+                            "format": "text",
+                            "settings": {
+                                "text": {
+                                    "recordStartTimestampFormat": "ISO 8601"
+                                }
+                            },
+                            "name": "[parameters('dataCollectionRules_dcr_name')]"
+                        }
+                    ]
+                },
+                "destinations": {
+                    "logAnalytics": [
+                        {
+                            "workspaceResourceId": "[parameters('workspaces_ws_CI-DEMO-AZ-SENTINEL_externalid')]",
+                            "name": "CI-DEMO-AZ-SENTINEL"
+                        }
+                    ]
+                },
+                "dataFlows": [
+                    {
+                        "streams": [
+                            "Custom-MyLogFileFormat"
+                        ],
+                        "destinations": [
+                            "CI-DEMO-AZ-SENTINEL"
+                        ],
+                        "transformKql": "source",
+                        "outputStream": "Custom-MyCustomSysLog_CL"
+                    }
+                ]
+            }
+        }
+    ]
+}
