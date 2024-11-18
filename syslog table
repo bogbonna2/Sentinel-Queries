@@ -1,0 +1,26 @@
+$tableParams = @'
+{
+    "properties": {
+        "schema": {
+            "name": "MyCustomSyslog_CL",
+            "columns": [
+                {
+                    "name": "TimeGenerated",
+                    "type": "DateTime"
+                },
+                {
+                    "name": "RawData",
+                    "type": "string"
+                },
+                {
+                    "name": "FilePath",
+                    "type": "string"
+                }
+            ]
+        },
+        "plan": "Analytics"
+    }
+}
+'@
+Invoke-AzRestMethod -Path "/subscriptions/6a8cbfca-fb3f-42a3-bff4-2d7cfa2c422f/resourcegroups/sentineltesting_rg/providers/microsoft.operationalinsights/workspaces/EndUsersPreprod-Sentinel-LogAnalyticsWorkspace
+/tables/MyCustomSyslog_CL?api-version=2021-12-01-preview" -Method PUT -Payload $tableParams
