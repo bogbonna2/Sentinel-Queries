@@ -33,18 +33,21 @@
                 "dataCollectionEndpointId": "[parameters('dataCollectionEndpoints_dce_useast_externalid')]",
                 "streamDeclarations": {
                     "Custom-MyLogFileFormat": {
-                        "columns": [
-                            {
-                                "name": "TimeGenerated",
-                                "type": "datetime"
-                            },
-                            {
-                                "name": "FilePath",
-                                "type": "string"
-                            }
-                        ]
-                    }
+            "columns": [
+                {
+                    "name": "TimeGenerated",
+                    "type": "DateTime"
                 },
+                {
+                    "name": "RawData",
+                    "type": "string"
+                },
+                {
+                    "name": "FilePath",
+                    "type": "string"
+                }
+            ]
+        },
                 "dataSources": {
                     "logFiles": [
                         {
