@@ -3,7 +3,7 @@
     "contentVersion": "1.0.0.0",
     "parameters": {
         "dataCollectionRules_dcr_name": {
-            "defaultValue": "Custom-MyCustomSysLog_CL",
+            "defaultValue": "Custom-EQSys_CL",
             "type": "String"
         },
         "dataCollectionEndpoints_dce_useast_externalid": {
@@ -81,7 +81,7 @@
                             "SENTINEL-Equitable-LogAnalyticsWorkspace"
                         ],
                         "transformKql": "source",
-                        "outputStream": "Custom-MyCustomSysLog_CL"
+                        "outputStream": "Custom-EQSys_CL"
                     }
                 ]
             }
