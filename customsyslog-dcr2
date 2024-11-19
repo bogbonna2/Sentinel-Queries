@@ -36,7 +36,7 @@
                         "columns": [
                             {
                                 "name": "TimeGenerated",
-                                "type": "DateTime"
+                                "type": "datetime"
                             },
                             {
                                 "name": "RawData",
