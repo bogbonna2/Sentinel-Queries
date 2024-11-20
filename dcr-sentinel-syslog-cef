@@ -6,8 +6,8 @@
             "defaultValue": "dcr-sentinel-syslog-cef",
             "type": "String"
         },
-        "dataCollectionEndpoints_Cribl_DCE_externalid": {
-            "defaultValue": "/subscriptions/{subscription-id}/resourceGroups/{resource-group}/providers/Microsoft.Insights/dataCollectionEndpoints/{DCE_Name}",
+        "dataCollectionEndpoints_Cribl_Stream_Ingestion_externalid": {
+            "defaultValue": "/subscriptions/2eff1c6d-f789-4be8-ab50-33d5b116d7a5/resourceGroups/CRIBL_PROD_RG/providers/Microsoft.Insights/dataCollectionEndpoints/Cribl-Stream-Ingestion",
             "type": "String"
         },
         "workspaces_ws_SENTINEL_Equitable_LogAnalyticsWorkspace_externalid": {
@@ -32,7 +32,7 @@
             },
             "kind": "Linux",
             "properties": {
-                "dataCollectionEndpointId": "[parameters('dataCollectionEndpoints_Cribl_DCE_externalid')]",
+                "dataCollectionEndpointId": "[parameters('dataCollectionEndpoints_Cribl_Stream_Ingestion_externalid')]",
                 "dataSources": {
                     "syslog": [
                         {
