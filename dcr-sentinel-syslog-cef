@@ -6,8 +6,8 @@
             "defaultValue": "dcr-sentinel-syslog-cef",
             "type": "String"
         },
-        "workspaces_ws_activitylog_csvd_01_externalid": {
-            "defaultValue": "/subscriptions/9a8da26a-a08d-4722-b6c3-435f4740372c/resourceGroups/rg-csvd-loganalytics-01/providers/Microsoft.OperationalInsights/workspaces/ws-activitylog-csvd-01",
+        "workspaces_ws_SENTINEL-Equitable-LogAnalyticsWorkspace_01_externalid": {
+            "defaultValue": "/subscriptions/2eff1c6d-f789-4be8-ab50-33d5b116d7a5/resourcegroups/sentinel_operations/providers/microsoft.operationalinsights/workspaces/SENTINEL-Equitable-LogAnalyticsWorkspace",
             "type": "String"
         }
     },
@@ -17,14 +17,14 @@
             "type": "Microsoft.Insights/dataCollectionRules",
             "apiVersion": "2023-03-11",
             "name": "[parameters('dataCollectionRules_dcr_sentinel_syslog_cef_name')]",
-            "location": "eastus2",
+            "location": "eastus",
             "tags": {
                 "createdBy": "Sentinel",
-                "owner": "troy garrett (garre343)",
-                "owner_team_email": "csvd.ieb.microsoft.team.list@census.gov",
-                "ProjectName": "infrastructure",
-                "ProjectNumber": "fs0000000000",
-                "ProjectRole": "inf_csvd_test"
+                "owner": "na",
+                "owner_team_email": "na",
+                "ProjectName": "na",
+                "ProjectNumber": "na",
+                "ProjectRole": "na"
             },
             "kind": "Linux",
             "properties": {
@@ -40,14 +40,14 @@
                             "logLevels": [
                                 "*"
                             ],
-                            "name": "sysLogsDataSource--1469628957"
+                            "name": "sysLogsDataSource-ProdEastUS"
                         }
                     ]
                 },
                 "destinations": {
                     "logAnalytics": [
                         {
-                            "workspaceResourceId": "[parameters('workspaces_ws_activitylog_csvd_01_externalid')]",
+                            "workspaceResourceId": "[parameters('workspaces_ws_SENTINEL-Equitable-LogAnalyticsWorkspace_01_externalid')]",
                             "name": "DataCollectionEvent"
                         }
                     ]
