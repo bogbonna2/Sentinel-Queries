@@ -1,0 +1,68 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "dataCollectionRules_dcr_sentinel_syslog_cef_name": {
+            "defaultValue": "dcr-sentinel-syslog-cef",
+            "type": "String"
+        },
+        "workspaces_ws_activitylog_csvd_01_externalid": {
+            "defaultValue": "/subscriptions/9a8da26a-a08d-4722-b6c3-435f4740372c/resourceGroups/rg-csvd-loganalytics-01/providers/Microsoft.OperationalInsights/workspaces/ws-activitylog-csvd-01",
+            "type": "String"
+        }
+    },
+    "variables": {},
+    "resources": [
+        {
+            "type": "Microsoft.Insights/dataCollectionRules",
+            "apiVersion": "2023-03-11",
+            "name": "[parameters('dataCollectionRules_dcr_sentinel_syslog_cef_name')]",
+            "location": "eastus2",
+            "tags": {
+                "createdBy": "Sentinel",
+                "owner": "troy garrett (garre343)",
+                "owner_team_email": "csvd.ieb.microsoft.team.list@census.gov",
+                "ProjectName": "infrastructure",
+                "ProjectNumber": "fs0000000000",
+                "ProjectRole": "inf_csvd_test"
+            },
+            "kind": "Linux",
+            "properties": {
+                "dataSources": {
+                    "syslog": [
+                        {
+                            "streams": [
+                                "Microsoft-CommonSecurityLog"
+                            ],
+                            "facilityNames": [
+                                "*"
+                            ],
+                            "logLevels": [
+                                "*"
+                            ],
+                            "name": "sysLogsDataSource--1469628957"
+                        }
+                    ]
+                },
+                "destinations": {
+                    "logAnalytics": [
+                        {
+                            "workspaceResourceId": "[parameters('workspaces_ws_activitylog_csvd_01_externalid')]",
+                            "name": "DataCollectionEvent"
+                        }
+                    ]
+                },
+                "dataFlows": [
+                    {
+                        "streams": [
+                            "Microsoft-CommonSecurityLog"
+                        ],
+                        "destinations": [
+                            "DataCollectionEvent"
+                        ]
+                    }
+                ]
+            }
+        }
+    ]
+}
