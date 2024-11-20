@@ -10,7 +10,7 @@
             "defaultValue": "/subscriptions/{subscription-id}/resourceGroups/{resource-group}/providers/Microsoft.Insights/dataCollectionEndpoints/{DCE_Name}",
             "type": "String"
         },
-        "workspaces_ws_SENTINEL_Equitable_LogAnalyticsWorkspace_01_externalid": {
+        "workspaces_ws_SENTINEL_Equitable_LogAnalyticsWorkspace_externalid": {
             "defaultValue": "/subscriptions/2eff1c6d-f789-4be8-ab50-33d5b116d7a5/resourcegroups/sentinel_operations/providers/microsoft.operationalinsights/workspaces/SENTINEL-Equitable-LogAnalyticsWorkspace",
             "type": "String"
         }
@@ -52,7 +52,7 @@
                 "destinations": {
                     "logAnalytics": [
                         {
-                            "workspaceResourceId": "[parameters('workspaces_ws_SENTINEL_Equitable_LogAnalyticsWorkspace_01_externalid')]",
+                            "workspaceResourceId": "[parameters('workspaces_ws_SENTINEL_Equitable_LogAnalyticsWorkspace_externalid')]",
                             "name": "DataCollectionEvent"
                         }
                     ]
