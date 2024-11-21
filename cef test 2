@@ -1,0 +1,72 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "dataCollectionRules_dcr_sentinel_syslog_cef_name": {
+            "defaultValue": "dcr-sentinel-syslog-cef",
+            "type": "String"
+        },
+        "dataCollectionEndpoints_Cribl_Stream_Ingestion_externalid": {
+            "defaultValue": "/subscriptions/2eff1c6d-f789-4be8-ab50-33d5b116d7a5/resourceGroups/CRIBL_PROD_RG/providers/Microsoft.Insights/dataCollectionEndpoints/Cribl-Stream-Ingestion",
+            "type": "String"
+        },
+        "workspaces_ws_SENTINEL_Equitable_LogAnalyticsWorkspace_externalid": {
+            "defaultValue": "/subscriptions/2eff1c6d-f789-4be8-ab50-33d5b116d7a5/resourcegroups/sentinel_operations/providers/microsoft.operationalinsights/workspaces/SENTINEL-Equitable-LogAnalyticsWorkspace",
+            "type": "String"
+        }
+    },
+    "resources": [
+        {
+            "type": "Microsoft.Insights/dataCollectionRules",
+            "apiVersion": "2023-03-11",
+            "name": "[parameters('dataCollectionRules_dcr_sentinel_syslog_cef_name')]",
+            "location": "eastus",
+            "tags": {
+                "createdBy": "Sentinel",
+                "owner": "na",
+                "owner_team_email": "na",
+                "ProjectName": "na",
+                "ProjectNumber": "na",
+                "ProjectRole": "na"
+            },
+            "kind": "Linux",
+            "properties": {
+                "dataCollectionEndpointId": "[parameters('dataCollectionEndpoints_Cribl_Stream_Ingestion_externalid')]",
+                "dataSources": {
+                    "syslog": [
+                        {
+                            "streams": [
+                                "Microsoft-Syslog"
+                            ],
+                            "facilityNames": [
+                                "*"
+                            ],
+                            "logLevels": [
+                                "*"
+                            ],
+                            "name": "sysLogsDataSource-ProdEastUS"
+                        }
+                    ]
+                },
+                "destinations": {
+                    "logAnalytics": [
+                        {
+                            "workspaceResourceId": "[parameters('workspaces_ws_SENTINEL_Equitable_LogAnalyticsWorkspace_externalid')]",
+                            "name": "logAnalyticsWorkspace"
+                        }
+                    ]
+                },
+                "dataFlows": [
+                    {
+                        "streams": [
+                            "Microsoft-Syslog"
+                        ],
+                        "destinations": [
+                            "logAnalyticsWorkspace"
+                        ]
+                    }
+                ]
+            }
+        }
+    ]
+}
