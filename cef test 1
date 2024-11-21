@@ -33,6 +33,16 @@
             "kind": "Linux",
             "properties": {
                 "dataCollectionEndpointId": "[parameters('dataCollectionEndpoints_Cribl_Stream_Ingestion_externalid')]",
+                "streamDeclarations": {
+                    "Custom-Syslog": {
+                        "columns": [
+                            { "name": "TimeGenerated", "type": "datetime" },
+                            { "name": "Facility", "type": "string" },
+                            { "name": "Severity", "type": "string" },
+                            { "name": "Message", "type": "string" }
+                        ]
+                    }
+                },
                 "dataSources": {
                     "syslog": [
                         {
@@ -53,7 +63,7 @@
                     "logAnalytics": [
                         {
                             "workspaceResourceId": "[parameters('workspaces_ws_SENTINEL_Equitable_LogAnalyticsWorkspace_externalid')]",
-                            "name": "DataCollectionEvent"
+                            "name": "logAnalyticsWorkspace"
                         }
                     ]
                 },
@@ -64,9 +74,6 @@
                         ],
                         "destinations": [
                             "logAnalyticsWorkspace"
-                        ],
-                        "transformKql": "source",
-                        "outputStream": "Microsoft-Syslog"
                         ]
                     }
                 ]
