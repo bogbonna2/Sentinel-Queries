@@ -1,0 +1,132 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "loganalyticsworkspace": {
+      "defaultValue": "enduserspreprod-sentinel-loganalyticsworkspace",
+      "type": "String"
+    },
+    "loganalyticsworkspace-location": {
+      "defaultValue": "eastus",
+      "type": "String"
+    },
+    "loganalyticsworkspace-subscription": {
+      "defaultValue": "6a8cbfca-fb3f-42a3-bff4-2d7cfa2c422f",
+      "type": "String"
+    },
+    "loganalyticsworkspace-resourceGroup": {
+      "defaultValue": "sentineltesting_rg",
+      "type": "String"
+    },
+    "flag-raw-copy-normdata": {
+      "defaultValue": false,
+      "allowedValues": [false, true],
+      "type": "Bool"
+    },
+    "table-tier-for-raw-copy": {
+      "defaultValue": "Basic",
+      "allowedValues": ["Analytics", "Basic"],
+      "type": "String"
+    },
+    "dce-reuse-flag": {
+      "defaultValue": false,
+      "allowedValues": [false, true],
+      "type": "Bool",
+      "metadata": {
+        "description": "The default name for the DCE is ms-sentinel-dce-[function-name]-[LA-Region]. If you prefer a custom name, please set this flag to true"
+      }
+    },
+    "input-dce-name": {
+      "defaultValue": "Cribl-Stream-Ingestion",
+      "type": "String"
+    },
+    "dcr-raw-data_refresh_flag": {
+      "defaultValue": true,
+      "type": "Bool"
+    },
+    "dcr-normalized-data_refresh_flag": {
+      "defaultValue": true,
+      "allowedValues": [false, true],
+      "type": "Bool"
+    },
+    "dcr-raw-data_name_input": {
+      "defaultValue": "crowdstrike-fdr-dcr",
+      "type": "String",
+      "metadata": {
+        "description": "Default name will be ms-sentinel-rawdata-dcr-[function-name]-[LA-Region], no need to enter if you want to use default names"
+      }
+    },
+    "dcr-normalized-data_name_input": {
+      "defaultValue": "",
+      "type": "String",
+      "metadata": {
+        "description": "Default name will be ms-sentinel-normdata-dcr-[function-name]-[LA-Region], no need to enter if you want to use default names"
+      }
+    },
+    "function-name": {
+      "defaultValue": "csfdr01",
+      "type": "String"
+    }
+  },
+  "variables": {
+    "loganalyticsworkspace": "[parameters('loganalyticsworkspace')]",
+    "loganalyticsworkspace-location": "[parameters('loganalyticsworkspace-location')]",
+    "loganalyticsworkspace-subscription": "[parameters('loganalyticsworkspace-subscription')]",
+    "loganalyticsworkspace-resourceGroup": "[parameters('loganalyticsworkspace-resourceGroup')]",
+    "flag-raw-copy-normdata": "[parameters('flag-raw-copy-normdata')]",
+    "table-tier-for-raw-copy": "[parameters('table-tier-for-raw-copy')]",
+    "default-dce-name": "[concat('ms-sentinel-dce-',parameters('function-name'),'-',replace(variables('loganalyticsworkspace-location'),' ', ''))]",
+    "dce-name": "[if(not(parameters('dce-reuse-flag')), variables('default-dce-name'), parameters('input-dce-name'))]",
+    "dcr-raw-data": "[if(empty(parameters('dcr-raw-data_name_input')), concat('ms-sentinel-rawdata-dcr-',parameters('function-name'),'-',replace(variables('loganalyticsworkspace-location'),' ','')), parameters('dcr-raw-data_name_input'))]",
+    "dcr-normalized-data": "[if(empty(parameters('dcr-normalized-data_name_input')), concat('ms-sentinel-normdata-dcr-',parameters('function-name'),'-',replace(variables('loganalyticsworkspace-location'),' ', '')), parameters('dcr-normalized-data_name_input'))]",
+    "dcr-raw-data_refresh_flag": "[parameters('dcr-raw-data_refresh_flag')]",
+    "dcr-normalized-data_refresh_flag": "[parameters('dcr-normalized-data_refresh_flag')]",
+    "cust-table-csdns": "Custom-CrowdStrike_DNS_Events_CL",
+    "cust-table-csfile": "Custom-CrowdStrike_File_Events_CL",
+    "cust-table-csnetwork": "Custom-CrowdStrike_Network_Events_CL",
+    "cust-table-csaudit": "Custom-CrowdStrike_Audit_Events_CL"
+  },
+  "resources": [
+    {
+      "type": "Microsoft.Insights/dataCollectionEndpoints",
+      "apiVersion": "2022-06-01",
+      "name": "[variables('dce-name')]",
+      "location": "[variables('loganalyticsworkspace-location')]",
+      "properties": {
+        "networkAcls": {
+          "publicNetworkAccess": "Enabled"
+        }
+      }
+    },
+    {
+      "type": "Microsoft.Insights/dataCollectionRules",
+      "apiVersion": "2022-06-01",
+      "name": "[variables('dcr-raw-data')]",
+      "location": "eastus",
+      "properties": {
+        "dataSources": {
+          "customLogs": [
+            {
+              "name": "Cribl-Crowdstrike",
+              "streams": ["Custom-CrowdstrikeDns"],
+              "dataCollectionEndpointId": "[variables('dce-name')]"
+            },
+            {
+              "name": "Cribl-Crowdstrike",
+              "streams": ["Custom-CrowdstrikeFile"],
+              "dataCollectionEndpointId": "[variables('dce-name')]"
+            }
+          ]
+        },
+        "destinations": {
+          "logAnalytics": [
+            {
+              "name": "[parameters('loganalyticsworkspace')]",
+              "workspaceResourceId": "[concat(parameters('loganalyticsworkspace-subscription'), '/resourceGroups/', parameters('loganalyticsworkspace-resourceGroup'), '/providers/Microsoft.OperationalInsights/workspaces/', parameters('loganalyticsworkspace'))]"
+            }
+          ]
+        }
+      }
+    }
+  ]
+}
