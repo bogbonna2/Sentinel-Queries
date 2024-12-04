@@ -20,19 +20,28 @@
     },
     "flag-raw-copy-normdata": {
       "defaultValue": false,
-      "allowedValues": [false, true],
+      "allowedValues": [
+        false,
+        true
+      ],
       "type": "Bool"
     },
     "table-tier-for-raw-copy": {
       "defaultValue": "Basic",
-      "allowedValues": ["Analytics", "Basic"],
+      "allowedValues": [
+        "Analytics",
+        "Basic"
+      ],
       "type": "String"
     },
     "dce-reuse-flag": {
       "defaultValue": false,
-      "allowedValues": [false, true],
+      "allowedValues": [
+        false,
+        true
+      ],
       "type": "Bool",
-      "metadata": {
+	  "metadata": {
         "description": "The default name for the DCE is ms-sentinel-dce-[function-name]-[LA-Region]. If you prefer a custom name, please set this flag to true"
       }
     },
@@ -46,7 +55,10 @@
     },
     "dcr-normalized-data_refresh_flag": {
       "defaultValue": true,
-      "allowedValues": [false, true],
+      "allowedValues": [
+        false,
+        true
+      ],
       "type": "Bool"
     },
     "dcr-raw-data_name_input": {
@@ -81,16 +93,3705 @@
     "dcr-normalized-data": "[if(empty(parameters('dcr-normalized-data_name_input')), concat('ms-sentinel-normdata-dcr-',parameters('function-name'),'-',replace(variables('loganalyticsworkspace-location'),' ', '')), parameters('dcr-normalized-data_name_input'))]",
     "dcr-raw-data_refresh_flag": "[parameters('dcr-raw-data_refresh_flag')]",
     "dcr-normalized-data_refresh_flag": "[parameters('dcr-normalized-data_refresh_flag')]",
-    "cust-table-csdns": "Custom-CrowdStrike_DNS_Events_CL",
-    "cust-table-csfile": "Custom-CrowdStrike_File_Events_CL",
-    "cust-table-csnetwork": "Custom-CrowdStrike_Network_Events_CL",
-    "cust-table-csaudit": "Custom-CrowdStrike_Audit_Events_CL"
+    "cust-table-csnetwork": "CrowdStrike_Network_Events_CL",
+    "cust-table-csdns": "CrowdStrike_DNS_Events_CL",
+    "cust-table-csaudit": "CrowdStrike_Audit_Events_CL",
     "norm-table-csfile": "ASimFileEventLogs_CL",
     "norm-table-csprocess": "ASimProcessEventLogs_CL",
     "norm-table-csauth": "ASimAuthenticationEventLogs_CL",
     "norm-table-csregistry": "ASimRegistryEventLogs_CL",
     "norm-table-csusermgmt": "ASimUserManagementLogs_CL"
   },
+  "resources": [
+    {
+      "type": "Microsoft.Insights/dataCollectionEndpoints",
+      "apiVersion": "2022-06-01",
+      "name": "[variables('dce-name')]",
+      "location": "[variables('loganalyticsworkspace-location')]",
+      "dependsOn": [
+        "[resourceId(variables('loganalyticsworkspace-subscription'), variables('loganalyticsworkspace-resourceGroup'), 'Microsoft.Resources/deployments', 'CSFDRLATablesTemplate')]"
+      ],
+      "properties": {
+        "networkAcls": {
+          "publicNetworkAccess": "Enabled"
+        }
+      }
+    },
+    {
+      "type": "Microsoft.Resources/deployments",
+      "apiVersion": "2021-04-01",
+      "name": "CSFDRLATablesTemplate",
+      "properties": {
+        "mode": "Incremental",
+        "template": {
+          "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+          "contentVersion": "1.0.0.0",
+          "parameters": {},
+          "variables": {},
+          "resources": [
+            {
+              "name": "[concat(variables('loganalyticsworkspace'),'/',variables('norm-table-csfile'))]",
+              "type": "Microsoft.OperationalInsights/workspaces/tables",
+              "apiVersion": "2022-10-01",
+              "tags": {},
+              "properties": {
+                "plan": "Analytics",
+                "schema": {
+                  "name": "[variables('norm-table-csfile')]",
+                  "columns": [
+                    {
+                      "name": "TimeGenerated",
+                      "type": "DateTime",
+                      "description": "The timestamp reflecting the time in which the event was generated."
+                    },
+                    {
+                      "name": "EventMessage",
+                      "type": "String",
+                      "description": "A general message or description."
+                    },
+                    {
+                      "name": "EventCount",
+                      "type": "Int",
+                      "description": "This value is used when the source supports aggregation, and a single record may represent multiple events."
+                    },
+                    {
+                      "name": "EventStartTime",
+                      "type": "DateTime",
+                      "description": "The time in which the event started. If the source supports aggregation and the record represents multiple events, the time that the first event was generated. If not provided by the source record, this field aliases the TimeGenerated field."
+                    },
+                    {
+                      "name": "EventEndTime",
+                      "type": "DateTime",
+                      "description": "The time in which the event ended. If the source supports aggregation and the record represents multiple events, the time that the last event was generated. If not provided by the source record, this field aliases the TimeGenerated field."
+                    },
+                    {
+                      "name": "EventType",
+                      "type": "String",
+                      "description": "The operation reported by the record."
+                    },
+                    {
+                      "name": "EventSubType",
+                      "type": "String",
+                      "description": "Additional description of the event type, if applicable."
+                    },
+                    {
+                      "name": "EventResult",
+                      "type": "String",
+                      "description": "The outcome of the event, represented by one of the following values: Success, Partial, Failure, NA (Not Applicable). The value may not be provided directly by the sources, in which case it is derived from other event fields, for example, the EventResultDetails field."
+                    },
+                    {
+                      "name": "EventResultDetails",
+                      "type": "String",
+                      "description": "The HTTP status code."
+                    },
+                    {
+                      "name": "EventOriginalUid",
+                      "type": "String",
+                      "description": "A unique ID of the original record, if provided by the source."
+                    },
+                    {
+                      "name": "EventOriginalType",
+                      "type": "String",
+                      "description": "The original event type or ID, if provided by the source."
+                    },
+                    {
+                      "name": "EventOriginalSubType",
+                      "type": "String",
+                      "description": "The original event subtype or ID, if provided by the source. For example, this field will be used to store the original Windows logon type. This value is used to derive EventSubType, which should have only one of the values documented for each schema."
+                    },
+                    {
+                      "name": "EventOriginalResultDetails",
+                      "type": "String",
+                      "description": "The original result details provided by the source. This value is used to derive EventResultDetails, which should have only one of the values documented for each schema."
+                    },
+                    {
+                      "name": "EventSeverity",
+                      "type": "String",
+                      "description": "The severity of the event. Valid values are: Informational, Low, Medium, or High."
+                    },
+                    {
+                      "name": "EventOriginalSeverity",
+                      "type": "String",
+                      "description": "The original severity as provided by the reporting device. This value is used to derive EventSeverity."
+                    },
+                    {
+                      "name": "EventProduct",
+                      "type": "String",
+                      "description": "The product generating the event."
+                    },
+                    {
+                      "name": "EventProductVersion",
+                      "type": "String",
+                      "description": "The version of the product generating the event."
+                    },
+                    {
+                      "name": "EventVendor",
+                      "type": "String",
+                      "description": "The vendor of the product generating the event."
+                    },
+                    {
+                      "name": "EventSchema",
+                      "type": "String",
+                      "description": "The schema the event is normalized to. Each schema documents its schema name."
+                    },
+                    {
+                      "name": "EventSchemaVersion",
+                      "type": "String",
+                      "description": "The version of the schema."
+                    },
+                    {
+                      "name": "EventReportUrl",
+                      "type": "String",
+                      "dataTypeHint": "URI",
+                      "description": "A URL provided in the event for a resource that provides more information about the event."
+                    },
+                    {
+                      "name": "EventOwner",
+                      "type": "String",
+                      "description": "The owner of the event, which is usually the department or subsidiary in which it was generated."
+                    },
+                    {
+                      "name": "Dvc",
+                      "type": "String",
+                      "description": "A unique identifier of the device on which the event occurred or which reported the event."
+                    },
+                    {
+                      "name": "DvcIpAddr",
+                      "type": "String",
+                      "dataTypeHint": "IP",
+                      "description": "The IP address of the device reporting the event."
+                    },
+                    {
+                      "name": "DvcHostname",
+                      "type": "String",
+                      "description": "The hostname of the device reporting the event."
+                    },
+                    {
+                      "name": "DvcDomain",
+                      "type": "String",
+                      "description": "The domain of the device reporting the event."
+                    },
+                    {
+                      "name": "DvcDomainType",
+                      "type": "String",
+                      "description": "The type of DvcDomain. Valid values include 'Windows' and 'FQDN'."
+                    },
+                    {
+                      "name": "DvcFQDN",
+                      "type": "String",
+                      "description": "The hostname of the device on which the event occurred or which reported the event."
+                    },
+                    {
+                      "name": "DvcDescription",
+                      "type": "String",
+                      "description": "A descriptive text associated with the device."
+                    },
+                    {
+                      "name": "DvcId",
+                      "type": "String",
+                      "description": "The unique ID of the device on which the event occurred or which reported the event."
+                    },
+                    {
+                      "name": "DvcIdType",
+                      "type": "String",
+                      "description": "The type of DvcId."
+                    },
+                    {
+                      "name": "DvcMacAddr",
+                      "type": "String",
+                      "description": "The MAC address of the device on which the event occurred or which reported the event. Example: 00:1B:44:11:3A:B7"
+                    },
+                    {
+                      "name": "DvcZone",
+                      "type": "String",
+                      "description": "The network on which the event occurred or which reported the event, depending on the schema."
+                    },
+                    {
+                      "name": "DvcOs",
+                      "type": "String",
+                      "description": "The operating system running on the device on which the event occurred or which reported the event."
+                    },
+                    {
+                      "name": "DvcOsVersion",
+                      "type": "String",
+                      "description": "The version of the operating system on the device on which the event occurred or which reported the event."
+                    },
+                    {
+                      "name": "DvcAction",
+                      "type": "String",
+                      "description": "The action taken on the web session."
+                    },
+                    {
+                      "name": "DvcOriginalAction",
+                      "type": "String",
+                      "description": "The original DvcAction as provided by the reporting device."
+                    },
+                    {
+                      "name": "DvcInterface",
+                      "type": "String",
+                      "description": "The original DvcAction as provided by the reporting device."
+                    },
+                    {
+                      "name": "DvcScopeId",
+                      "type": "String",
+                      "description": "The cloud platform scope ID the device belongs to. DvcScopeId map to a subscription ID on Azure and to an account ID on AWS."
+                    },
+                    {
+                      "name": "DvcScope",
+                      "type": "String",
+                      "description": "The cloud platform scope the device belongs to. DvcScope map to a subscription ID on Azure and to an account ID on AWS."
+                    },
+                    {
+                      "name": "AdditionalFields",
+                      "type": "dynamic",
+                      "description": "Additional information, represented using key/value pairs provided by the source which do not map to ASim."
+                    },
+                    {
+                      "name": "TargetFileCreationTime",
+                      "type": "DateTime",
+                      "description": "The time at which the target file was created."
+                    },
+                    {
+                      "name": "TargetFileDirectory",
+                      "type": "String",
+                      "description": "The target file folder or location."
+                    },
+                    {
+                      "name": "TargetFileExtension",
+                      "type": "String",
+                      "description": "The target file extension."
+                    },
+                    {
+                      "name": "TargetFileMimeType",
+                      "type": "String",
+                      "description": "The Mime or Media type of the target file."
+                    },
+                    {
+                      "name": "TargetFileName",
+                      "type": "String",
+                      "description": "The name of the target file, without a path or a location, but with an extension if relevant."
+                    },
+                    {
+                      "name": "TargetFilePath",
+                      "type": "String",
+                      "description": "The full, normalized path of the target file, including the folder or location, the file name, and the extension."
+                    },
+                    {
+                      "name": "TargetFilePathType",
+                      "type": "String",
+                      "description": "The type of TargetFilePath."
+                    },
+                    {
+                      "name": "TargetFileMD5",
+                      "type": "String",
+                      "description": "The MD5 hash of the target file."
+                    },
+                    {
+                      "name": "TargetFileSHA1",
+                      "type": "String",
+                      "description": "The SHA-1 hash of the target file."
+                    },
+                    {
+                      "name": "TargetFileSHA256",
+                      "type": "String",
+                      "description": "The SHA-256 hash of the target file."
+                    },
+                    {
+                      "name": "TargetFileSHA512",
+                      "type": "String",
+                      "description": "The SHA-512 hash of the source file."
+                    },
+                    {
+                      "name": "HashType",
+                      "type": "String",
+                      "description": "The type of hash stored in the Hash alias field."
+                    },
+                    {
+                      "name": "TargetFileSize",
+                      "type": "Long",
+                      "description": "The size of the target file in bytes."
+                    },
+                    {
+                      "name": "SrcFileCreationTime",
+                      "type": "DateTime",
+                      "description": "The time at which the source file was created."
+                    },
+                    {
+                      "name": "SrcFileDirectory",
+                      "type": "String",
+                      "description": "The source file folder or location."
+                    },
+                    {
+                      "name": "SrcFileExtension",
+                      "type": "String",
+                      "description": "The source file extension."
+                    },
+                    {
+                      "name": "SrcFileMimeType",
+                      "type": "String",
+                      "description": "The Mime or Media type of the source file."
+                    },
+                    {
+                      "name": "SrcFileName",
+                      "type": "String",
+                      "description": "The name of the source file, without a path or a location, but with an extension if relevant."
+                    },
+                    {
+                      "name": "SrcFilePath",
+                      "type": "String",
+                      "description": "The full, normalized path of the source file, including the folder or location, the file name, and the extension."
+                    },
+                    {
+                      "name": "SrcFilePathType",
+                      "type": "String",
+                      "description": "The type of SrcFilePath."
+                    },
+                    {
+                      "name": "SrcFileMD5",
+                      "type": "String",
+                      "description": "The MD5 hash of the source file."
+                    },
+                    {
+                      "name": "SrcFileSHA1",
+                      "type": "String",
+                      "description": "The SHA-1 hash of the source file."
+                    },
+                    {
+                      "name": "SrcFileSHA256",
+                      "type": "String",
+                      "description": "The SHA-256 hash of the source file."
+                    },
+                    {
+                      "name": "SrcFileSHA512",
+                      "type": "String",
+                      "description": "The SHA-512 hash of the source file."
+                    },
+                    {
+                      "name": "SrcFileSize",
+                      "description": "The size of the source file in bytes.",
+                      "type": "Long"
+                    },
+                    {
+                      "name": "ActorUserId",
+                      "type": "String",
+                      "description": "A machine-readable, alphanumeric, unique representation of the actor."
+                    },
+                    {
+                      "name": "ActorScope",
+                      "type": "String",
+                      "description": "The scope, such as Azure AD tenant, in which ActorUserId and ActorUsername are defined."
+                    },
+                    {
+                      "name": "ActorUserIdType",
+                      "type": "String",
+                      "description": "The type of the ID stored in the ActorUserId field."
+                    },
+                    {
+                      "name": "ActorUsername",
+                      "type": "String",
+                      "description": "The Actor username, including domain information when available."
+                    },
+                    {
+                      "name": "ActorUsernameType",
+                      "type": "String",
+                      "description": "Specifies the type of the user name stored in the ActorUsername field."
+                    },
+                    {
+                      "name": "ActorSessionId",
+                      "type": "String",
+                      "description": "The unique ID of the login session of the Actor."
+                    },
+                    {
+                      "name": "ActorUserType",
+                      "type": "String",
+                      "description": "The type of actor."
+                    },
+                    {
+                      "name": "ActorOriginalUserType",
+                      "type": "String",
+                      "description": "The original actor user type as provided by the reporting device."
+                    },
+                    {
+                      "name": "ActingProcessCommandLine",
+                      "type": "String",
+                      "description": "The command line used to run the acting process."
+                    },
+                    {
+                      "name": "ActingProcessName",
+                      "type": "String",
+                      "description": "The name of the acting process."
+                    },
+                    {
+                      "name": "ActingProcessId",
+                      "type": "String",
+                      "description": "The process ID (PID) of the acting process."
+                    },
+                    {
+                      "name": "ActingProcessGuid",
+                      "type": "String",
+                      "description": "A generated unique identifier (GUID) of the acting process."
+                    },
+                    {
+                      "name": "HttpUserAgent",
+                      "type": "String",
+                      "description": "When the operation is initiated using HTTP or HTTPS, the HTTP user agent header."
+                    },
+                    {
+                      "name": "NetworkApplicationProtocol",
+                      "type": "String",
+                      "description": "When the operation is initiated by a remote system, the application layer protocol used by the connection or session."
+                    },
+                    {
+                      "name": "SrcIpAddr",
+                      "type": "String",
+                      "dataTypeHint": "IP",
+                      "description": "When the operation is initiated by a remote system, the IP address of this system."
+                    },
+                    {
+                      "name": "SrcGeoCountry",
+                      "type": "String",
+                      "description": "The country associated with the source IP address."
+                    },
+                    {
+                      "name": "SrcGeoRegion",
+                      "type": "String",
+                      "description": "The region within a country associated with the source IP address."
+                    },
+                    {
+                      "name": "SrcGeoCity",
+                      "type": "String",
+                      "description": "The city associated with the source IP address."
+                    },
+                    {
+                      "name": "SrcGeoLatitude",
+                      "type": "Real",
+                      "description": "The latitude of the geographical coordinate associated with the source IP address."
+                    },
+                    {
+                      "name": "SrcGeoLongitude",
+                      "type": "Real",
+                      "description": "The longitude of the geographical coordinate associated with the source IP address."
+                    },
+                    {
+                      "name": "TargetAppName",
+                      "type": "String",
+                      "description": "The name of the destination application."
+                    },
+                    {
+                      "name": "TargetAppId",
+                      "type": "String",
+                      "description": "The ID of the destination application, as reported by the reporting device."
+                    },
+                    {
+                      "name": "TargetAppType",
+                      "type": "String",
+                      "description": "The type of the destination application."
+                    },
+                    {
+                      "name": "TargetUrl",
+                      "type": "String",
+                      "dataTypeHint": "URI",
+                      "description": "When the operation is initiated using HTTP or HTTPS, the URL used."
+                    },
+                    {
+                      "name": "RuleName",
+                      "type": "String",
+                      "description": "The name or ID of the rule by associated with the inspection results."
+                    },
+                    {
+                      "name": "RuleNumber",
+                      "type": "Int",
+                      "description": "The number of the rule associated with the inspection results."
+                    },
+                    {
+                      "name": "ThreatId",
+                      "type": "String",
+                      "description": "The ID of the threat or malware identified in the file activity."
+                    },
+                    {
+                      "name": "ThreatName",
+                      "type": "String",
+                      "description": "The name of the threat or malware identified in the file activity."
+                    },
+                    {
+                      "name": "ThreatCategory",
+                      "type": "String",
+                      "description": "The category of the threat or malware identified in the file activity."
+                    },
+                    {
+                      "name": "ThreatRiskLevel",
+                      "type": "Int",
+                      "description": "The risk level associated with the identified threat. The level should be a number between 0 and 100."
+                    },
+                    {
+                      "name": "ThreatOriginalRiskLevel",
+                      "type": "String",
+                      "description": "The risk level as reported by the reporting device."
+                    },
+                    {
+                      "name": "ThreatFilePath",
+                      "type": "String",
+                      "description": "A file path for which a threat was identified. The field ThreatField contains the name of the field ThreatFilePath represents."
+                    },
+                    {
+                      "name": "ThreatField",
+                      "type": "String",
+                      "description": "The field for which a threat was identified. The value is either SrcFilePath or DstFilePath."
+                    },
+                    {
+                      "name": "ThreatConfidence",
+                      "type": "Int",
+                      "description": "The confidence level of the threat identified, normalized to a value between 0 and a 100."
+                    },
+                    {
+                      "name": "ThreatOriginalConfidence",
+                      "type": "String",
+                      "description": "The original confidence level of the threat identified, as reported by the reporting device."
+                    },
+                    {
+                      "name": "ThreatIsActive",
+                      "type": "Bool",
+                      "description": "True ID the threat identified is considered an active threat."
+                    },
+                    {
+                      "name": "ThreatFirstReportedTime",
+                      "type": "DateTime",
+                      "description": "The first time the IP address or domain were identified as a threat."
+                    },
+                    {
+                      "name": "ThreatLastReportedTime",
+                      "type": "DateTime",
+                      "description": "The last time the IP address or domain were identified as a threat."
+                    },
+                    {
+                      "name": "DvcSubscriptionId",
+                      "type": "String",
+                      "description": "The cloud platform subscription ID the device belongs to. DvcSubscriptionId map to a subscription ID on Azure and to an account ID on AWS."
+                    },
+                    {
+                      "name": "Hash",
+                      "type": "String",
+                      "description": "Alias to the best available Target File hash."
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "[concat(variables('loganalyticsworkspace'),'/',variables('norm-table-csprocess'))]",
+              "type": "Microsoft.OperationalInsights/workspaces/tables",
+              "apiVersion": "2022-10-01",
+              "tags": {},
+              "properties": {
+                "plan": "Analytics",
+                "schema": {
+                  "name": "[variables('norm-table-csprocess')]",
+                  "columns": [
+                    {
+                      "name": "TimeGenerated",
+                      "type": "DateTime",
+                      "description": "The timestamp (UTC) reflecting the time in which the event was generated."
+                    },
+                    {
+                      "name": "AdditionalFields",
+                      "type": "dynamic",
+                      "description": "Additional information, represented using key and value pairs provided by the source which do not map to ASim."
+                    },
+                    {
+                      "name": "EventMessage",
+                      "type": "String",
+                      "description": "A general message or description."
+                    },
+                    {
+                      "name": "EventCount",
+                      "type": "Int",
+                      "description": "The number of events described by the record."
+                    },
+                    {
+                      "name": "EventStartTime",
+                      "type": "DateTime",
+                      "description": "The time in which the event started. If the source supports aggregation and the record represents multiple events, the time that the first event was generated. If not provided by the source record, this field aliases the TimeGenerated field."
+                    },
+                    {
+                      "name": "EventEndTime",
+                      "type": "DateTime",
+                      "description": "The time in which the event ended. If the source supports aggregation and the record represents multiple events, the time that the last event was generated. If not provided by the source record, this field aliases the TimeGenerated field."
+                    },
+                    {
+                      "name": "EventType",
+                      "type": "String",
+                      "description": "Describes the operation reported by the record"
+                    },
+                    {
+                      "name": "EventSubType",
+                      "type": "String",
+                      "description": "Describes a subdivision of the operation reported in the EventType field."
+                    },
+                    {
+                      "name": "EventResult",
+                      "type": "String",
+                      "description": "The outcome of the event, represented by one of the following values: Success, Partial, Failure, NA (Not Applicable). The value may not be provided directly by the sources, in which case it is derived from other event fields, for example, the EventResultDetails field."
+                    },
+                    {
+                      "name": "EventResultDetails",
+                      "type": "String",
+                      "description": "Reason or details for the result reported in the EventResult field."
+                    },
+                    {
+                      "name": "EventOriginalUid",
+                      "type": "String",
+                      "description": "A unique ID of the original record, if provided by the source."
+                    },
+                    {
+                      "name": "EventOriginalType",
+                      "type": "String",
+                      "description": "The original event type or ID, if provided by the source."
+                    },
+                    {
+                      "name": "EventOriginalSubType",
+                      "type": "String",
+                      "description": "The original event subtype or ID, if provided by the source."
+                    },
+                    {
+                      "name": "EventOriginalResultDetails",
+                      "type": "String",
+                      "description": "The original result details provided by the source."
+                    },
+                    {
+                      "name": "EventSeverity",
+                      "type": "String",
+                      "description": "The severity of the event. Valid values are: Informational, Low, Medium, or High."
+                    },
+                    {
+                      "name": "EventOriginalSeverity",
+                      "type": "String",
+                      "description": "The original severity as provided by the reporting device. "
+                    },
+                    {
+                      "name": "EventProduct",
+                      "type": "String",
+                      "description": "The product generating the event."
+                    },
+                    {
+                      "name": "EventProductVersion",
+                      "type": "String",
+                      "description": "The version of the product generating the event."
+                    },
+                    {
+                      "name": "EventVendor",
+                      "type": "String",
+                      "description": "The vendor of the product generating the event."
+                    },
+                    {
+                      "name": "EventSchemaVersion",
+                      "type": "String",
+                      "description": "The version of the schema."
+                    },
+                    {
+                      "name": "EventOwner",
+                      "type": "String",
+                      "description": "The owner of the event, which is usually the department or subsidiary in which it was generated."
+                    },
+                    {
+                      "name": "EventReportUrl",
+                      "type": "String",
+                      "description": "A URL provided in the event for a resource that provides more information about the event."
+                    },
+                    {
+                      "name": "DvcIpAddr",
+                      "type": "String",
+                      "dataTypeHint": "IP",
+                      "description": "The IP Address of the device reporting the event."
+                    },
+                    {
+                      "name": "DvcHostname",
+                      "type": "String",
+                      "description": "The hostname of the device reporting the event."
+                    },
+                    {
+                      "name": "DvcDomain",
+                      "type": "String",
+                      "description": "The domain of the device reporting the event."
+                    },
+                    {
+                      "name": "DvcDomainType",
+                      "type": "String",
+                      "description": "The type of DvcDomain. Possible values include \"Windows\" and \"FQDN\"."
+                    },
+                    {
+                      "name": "DvcFQDN",
+                      "type": "String",
+                      "description": "The hostname of the device on which the event occurred or which reported the event."
+                    },
+                    {
+                      "name": "DvcDescription",
+                      "type": "String",
+                      "description": "A descriptive text associated with the device."
+                    },
+                    {
+                      "name": "DvcId",
+                      "type": "String",
+                      "description": "The unique ID of the device on which the event occurred or which reported the event."
+                    },
+                    {
+                      "name": "DvcIdType",
+                      "type": "String",
+                      "description": "The type of DvcId."
+                    },
+                    {
+                      "name": "DvcMacAddr",
+                      "type": "String",
+                      "dataTypeHint": "IP",
+                      "description": "The MAC address of the device on which the event occurred or which reported the event."
+                    },
+                    {
+                      "name": "DvcZone",
+                      "type": "String",
+                      "description": "The network on which the event occurred or which reported the event."
+                    },
+                    {
+                      "name": "DvcOs",
+                      "type": "String",
+                      "description": "The operating system running on the device on which the event occurred or which reported the event."
+                    },
+                    {
+                      "name": "DvcOsVersion",
+                      "type": "String",
+                      "description": "The version of the operating system on the device on which the event occurred or which reported the event."
+                    },
+                    {
+                      "name": "DvcAction",
+                      "type": "String",
+                      "description": "For reporting security systems, the action taken by the system."
+                    },
+                    {
+                      "name": "DvcOriginalAction",
+                      "type": "String",
+                      "description": "The original DvcAction as provided by the reporting device."
+                    },
+                    {
+                      "name": "DvcInterface",
+                      "type": "String",
+                      "description": "The network interface on which data was captured."
+                    },
+                    {
+                      "name": "DvcScopeId",
+                      "type": "String",
+                      "description": "The cloud platform scope ID the device belongs to. DvcScopeId map to a subscription ID on Azure and to an account ID on AWS."
+                    },
+                    {
+                      "name": "DvcScope",
+                      "type": "String",
+                      "description": "The cloud platform scope the device belongs to. DvcScope map to a subscription ID on Azure and to an account ID on AWS."
+                    },
+                    {
+                      "name": "ActorUserId",
+                      "type": "String",
+                      "description": "A machine-readable, alphanumeric, unique representation of the actor."
+                    },
+                    {
+                      "name": "ActorUserIdType",
+                      "type": "String",
+                      "description": "The type of the ID stored in the ActorUserId field."
+                    },
+                    {
+                      "name": "ActorScopeId",
+                      "type": "String",
+                      "description": "The scope ID, such as Azure AD tenant ID, in which ActorUserId and ActorUsername are defined."
+                    },
+                    {
+                      "name": "ActorScope",
+                      "type": "String",
+                      "description": "The scope, such as Azure AD tenant, in which ActorUserId and ActorUsername are defined."
+                    },
+                    {
+                      "name": "ActorUsername",
+                      "type": "String",
+                      "description": "The Actor's username, including domain information when available."
+                    },
+                    {
+                      "name": "ActorUsernameType",
+                      "type": "String",
+                      "description": "The type of the Actor's username specified in ActionUsername field"
+                    },
+                    {
+                      "name": "ActorUserType",
+                      "type": "String",
+                      "description": "The type of the Actor."
+                    },
+                    {
+                      "name": "ActorOriginalUserType",
+                      "type": "String",
+                      "description": "The user type as reported by the reporting device."
+                    },
+                    {
+                      "name": "ActorSessionId",
+                      "type": "String",
+                      "description": "The unique ID of the sign-in session of the Actor."
+                    },
+                    {
+                      "name": "TargetUserId",
+                      "type": "String",
+                      "description": "A machine-readable, alphanumeric, unique representation of the actor."
+                    },
+                    {
+                      "name": "TargetUserIdType",
+                      "type": "String",
+                      "description": "The type of the ID stored in the TargetUserId field."
+                    },
+                    {
+                      "name": "TargetScopeId",
+                      "type": "String",
+                      "description": "The scope ID, such as Azure AD tenant ID, in which TargetUserId and TargetUsername are defined."
+                    },
+                    {
+                      "name": "TargetScope",
+                      "type": "String",
+                      "description": "The scope, such as Azure AD tenant, in which TargetUserId and TargetUsername are defined."
+                    },
+                    {
+                      "name": "TargetUsername",
+                      "type": "String",
+                      "description": "The Target actor's username, including domain information when available."
+                    },
+                    {
+                      "name": "TargetUsernameType",
+                      "type": "String",
+                      "description": "The type of the Target actor's username specified in TargetUsername field"
+                    },
+                    {
+                      "name": "TargetUserType",
+                      "type": "String",
+                      "description": "The type of the Target actor."
+                    },
+                    {
+                      "name": "TargetOriginalUserType",
+                      "type": "String",
+                      "description": "The user type as reported by the reporting device."
+                    },
+                    {
+                      "name": "TargetUserSessionId",
+                      "type": "String",
+                      "description": "The unique ID of the sign-in session of the Target actor."
+                    },
+                    {
+                      "name": "TargetUserSessionGuid",
+                      "type": "String",
+                      "dataTypeHint": "GUID",
+                      "description": "The unique guid of the sign-in session of the Target actor."
+                    },
+                    {
+                      "name": "ActingProcessCommandLine",
+                      "type": "String",
+                      "description": "The command line used to run the acting process."
+                    },
+                    {
+                      "name": "ActingProcessName",
+                      "type": "String",
+                      "description": "The name of the acting process."
+                    },
+                    {
+                      "name": "ActingProcessFileCompany",
+                      "type": "String",
+                      "description": "The company that created the acting process image file."
+                    },
+                    {
+                      "name": "ActingProcessFileDescription",
+                      "type": "String",
+                      "description": "The description embedded in the version information of the acting process image file."
+                    },
+                    {
+                      "name": "ActingProcessFileProduct",
+                      "type": "String",
+                      "description": "The product name from the version information in the acting process image file."
+                    },
+                    {
+                      "name": "ActingProcessFileVersion",
+                      "type": "String",
+                      "description": "The product version from the version information of the acting process image file."
+                    },
+                    {
+                      "name": "ActingProcessFileInternalName",
+                      "type": "String",
+                      "description": "The product internal file name from the version information of the acting process image file."
+                    },
+                    {
+                      "name": "ActingProcessFileOriginalName",
+                      "type": "String",
+                      "description": "The product original file name from the version information of the acting process image file."
+                    },
+                    {
+                      "name": "ActingProcessFilename",
+                      "type": "String",
+                      "description": "The product file name from the version information of the acting process image file."
+                    },
+                    {
+                      "name": "ActingProcessIsHidden",
+                      "type": "Bool",
+                      "description": "An indication of whether the acting process is in hidden mode."
+                    },
+                    {
+                      "name": "ActingProcessInjectedAddress",
+                      "type": "String",
+                      "description": "The memory address in which the responsible acting process is stored."
+                    },
+                    {
+                      "name": "ActingProcessId",
+                      "type": "String",
+                      "description": "The process ID of the acting process."
+                    },
+                    {
+                      "name": "ActingProcessGuid",
+                      "type": "String",
+                      "dataTypeHint": "GUID",
+                      "description": "A GUID of the acting process."
+                    },
+                    {
+                      "name": "ActingProcessIntegrityLevel",
+                      "type": "String",
+                      "description": "Integrity Level for acting process."
+                    },
+                    {
+                      "name": "ActingProcessMD5",
+                      "type": "String",
+                      "description": "The MD5 hash of the acting process image file."
+                    },
+                    {
+                      "name": "ActingProcessSHA1",
+                      "type": "String",
+                      "description": "The SHA-1 hash of the acting process image file."
+                    },
+                    {
+                      "name": "ActingProcessSHA256",
+                      "type": "String",
+                      "description": "The SHA-256 hash of the acting process image file."
+                    },
+                    {
+                      "name": "ActingProcessSHA512",
+                      "type": "String",
+                      "description": "The SHA-512 hash of the acting process image file."
+                    },
+                    {
+                      "name": "ActingProcessIMPHASH",
+                      "type": "String",
+                      "description": "The Import Hash of all the library DLLs that are used by the acting process."
+                    },
+                    {
+                      "name": "ActingProcessCreationTime",
+                      "type": "DateTime",
+                      "description": "The date and time when the acting process was started."
+                    },
+                    {
+                      "name": "ActingProcessTokenElevation",
+                      "type": "String",
+                      "description": "A token indicating the presence or absence of User Access Control (UAC) privilege elevation applied to the acting process."
+                    },
+                    {
+                      "name": "ActingProcessFileSize",
+                      "type": "Long",
+                      "description": "The size of the file in bytes that ran the acting process."
+                    },
+                    {
+                      "name": "ParentProcessName",
+                      "type": "String",
+                      "description": "The name of the parent process."
+                    },
+                    {
+                      "name": "ParentProcessFileCompany",
+                      "type": "String",
+                      "description": "The company that created the parent process image file."
+                    },
+                    {
+                      "name": "ParentProcessFileDescription",
+                      "type": "String",
+                      "description": "The description from the version information of the parent process image file."
+                    },
+                    {
+                      "name": "ParentProcessFileProduct",
+                      "type": "String",
+                      "description": "The product name from the version information in the parent process image file."
+                    },
+                    {
+                      "name": "ParentProcessFileVersion",
+                      "type": "String",
+                      "description": "The product version from the version information of the parent process image file."
+                    },
+                    {
+                      "name": "ParentProcessIsHidden",
+                      "type": "Bool",
+                      "description": "An indication of whether the parent process is in hidden mode."
+                    },
+                    {
+                      "name": "ParentProcessInjectedAddress",
+                      "type": "String",
+                      "description": "The memory address in which the responsible parent process is stored."
+                    },
+                    {
+                      "name": "ParentProcessId",
+                      "type": "String",
+                      "description": "The process ID of the parent process."
+                    },
+                    {
+                      "name": "ParentProcessGuid",
+                      "type": "String",
+                      "dataTypeHint": "GUID",
+                      "description": "A GUID of the parent process."
+                    },
+                    {
+                      "name": "ParentProcessIntegrityLevel",
+                      "type": "String",
+                      "description": "Integrity Level for parent process."
+                    },
+                    {
+                      "name": "ParentProcessMD5",
+                      "type": "String",
+                      "description": "The MD5 hash of the parent process image file."
+                    },
+                    {
+                      "name": "ParentProcessSHA1",
+                      "type": "String",
+                      "description": "The SHA-1 hash of the parent process image file."
+                    },
+                    {
+                      "name": "ParentProcessSHA256",
+                      "type": "String",
+                      "description": "The SHA-256 hash of the parent process image file."
+                    },
+                    {
+                      "name": "ParentProcessSHA512",
+                      "type": "String",
+                      "description": "The SHA-512 hash of the parent process image file."
+                    },
+                    {
+                      "name": "ParentProcessIMPHASH",
+                      "type": "String",
+                      "description": "The Import Hash of all the library DLLs that are used by the parent process."
+                    },
+                    {
+                      "name": "ParentProcessCreationTime",
+                      "type": "DateTime",
+                      "description": "The date and time when the parent process was started."
+                    },
+                    {
+                      "name": "ParentProcessTokenElevation",
+                      "type": "String",
+                      "description": "A token indicating the presence or absence of User Access Control (UAC) privilege elevation applied to the parent process."
+                    },
+                    {
+                      "name": "TargetProcessCommandLine",
+                      "type": "String",
+                      "description": "The command line used to run the target process."
+                    },
+                    {
+                      "name": "TargetProcessName",
+                      "type": "String",
+                      "description": "The name of the target process."
+                    },
+                    {
+                      "name": "TargetProcessFileCompany",
+                      "type": "String",
+                      "description": "The company that created the target process image file."
+                    },
+                    {
+                      "name": "TargetProcessFileDescription",
+                      "type": "String",
+                      "description": "The description from the version information of the target process image file."
+                    },
+                    {
+                      "name": "TargetProcessFileProduct",
+                      "type": "String",
+                      "description": "The product name from the version information in the target process image file."
+                    },
+                    {
+                      "name": "TargetProcessFileVersion",
+                      "type": "String",
+                      "description": "The product version from the version information of the target process image file."
+                    },
+                    {
+                      "name": "TargetProcessFileInternalName",
+                      "type": "String",
+                      "description": "The product internal file name from the version information of the target process image file."
+                    },
+                    {
+                      "name": "TargetProcessFileOriginalName",
+                      "type": "String",
+                      "description": "The product original file name from the version information of the target process image file."
+                    },
+                    {
+                      "name": "TargetProcessFilename",
+                      "type": "String",
+                      "description": "The product file name from the version information of the target process image file."
+                    },
+                    {
+                      "name": "TargetProcessIsHidden",
+                      "type": "Bool",
+                      "description": "An indication of whether the target process is in hidden mode."
+                    },
+                    {
+                      "name": "TargetProcessInjectedAddress",
+                      "type": "String",
+                      "description": "The memory address in which the responsible target process is stored."
+                    },
+                    {
+                      "name": "TargetProcessId",
+                      "type": "String",
+                      "description": "The process ID of the target process."
+                    },
+                    {
+                      "name": "TargetProcessGuid",
+                      "type": "String",
+                      "dataTypeHint": "GUID",
+                      "description": "A GUID of the target process."
+                    },
+                    {
+                      "name": "TargetProcessIntegrityLevel",
+                      "type": "String",
+                      "description": "Integrity Level for target process."
+                    },
+                    {
+                      "name": "TargetProcessMD5",
+                      "type": "String",
+                      "description": "The MD5 hash of the target process image file."
+                    },
+                    {
+                      "name": "TargetProcessSHA1",
+                      "type": "String",
+                      "description": "The SHA-1 hash of the target process image file."
+                    },
+                    {
+                      "name": "TargetProcessSHA256",
+                      "type": "String",
+                      "description": "The SHA-256 hash of the target process image file."
+                    },
+                    {
+                      "name": "TargetProcessSHA512",
+                      "type": "String",
+                      "description": "The SHA-512 hash of the target process image file."
+                    },
+                    {
+                      "name": "TargetProcessIMPHASH",
+                      "type": "String",
+                      "description": "The Import Hash of all the library DLLs that are used by the target process."
+                    },
+                    {
+                      "name": "TargetProcessCreationTime",
+                      "type": "DateTime",
+                      "description": "The date and time when the target process was started."
+                    },
+                    {
+                      "name": "TargetProcessTokenElevation",
+                      "type": "String",
+                      "description": "A token indicating the presence or absence of User Access Control (UAC) privilege elevation applied to the target process."
+                    },
+                    {
+                      "name": "TargetProcessFileSize",
+                      "type": "Long",
+                      "description": "Size of the file in bytes that ran the process responsible for the event."
+                    },
+                    {
+                      "name": "TargetProcessCurrentDirectory",
+                      "type": "String",
+                      "description": "The current directory in which the target process is executed."
+                    },
+                    {
+                      "name": "TargetProcessStatusCode",
+                      "type": "String",
+                      "description": "The exit code returned by the target process when terminated."
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "[concat(variables('loganalyticsworkspace'),'/',variables('norm-table-csauth'))]",
+              "type": "Microsoft.OperationalInsights/workspaces/tables",
+              "apiVersion": "2022-10-01",
+              "tags": {},
+              "properties": {
+                "plan": "Analytics",
+                "schema": {
+                  "name": "[variables('norm-table-csauth')]",
+                  "columns": [
+                    {
+                      "name": "TimeGenerated",
+                      "type": "DateTime",
+                      "description": "The timestamp (UTC) reflecting the time in which the event was generated."
+                    },
+                    {
+                      "name": "AdditionalFields",
+                      "type": "dynamic",
+                      "description": "Additional information, represented using key/value pairs provided by the source which do not map to ASim."
+                    },
+                    {
+                      "name": "EventMessage",
+                      "type": "String",
+                      "description": "A general message or description."
+                    },
+                    {
+                      "name": "EventCount",
+                      "type": "Int",
+                      "description": "The number of events described by the record."
+                    },
+                    {
+                      "name": "EventStartTime",
+                      "type": "DateTime",
+                      "description": "The time in which the event started. If the source supports aggregation and the record represents multiple events, the time that the first event was generated. If not provided by the source record, this field aliases the TimeGenerated field."
+                    },
+                    {
+                      "name": "EventEndTime",
+                      "type": "DateTime",
+                      "description": "The time in which the event ended. If the source supports aggregation and the record represents multiple events, the time that the last event was generated. If not provided by the source record, this field aliases the TimeGenerated field."
+                    },
+                    {
+                      "name": "EventType",
+                      "type": "String",
+                      "description": "Describes the operation reported by the record"
+                    },
+                    {
+                      "name": "EventSubType",
+                      "type": "String",
+                      "description": "The sign-in type for example System, Interactive, RemoteInteractive, Service, RemoteService, Remote or AssumeRole."
+                    },
+                    {
+                      "name": "EventResult",
+                      "type": "String",
+                      "description": "The outcome of the event, represented by one of the following values: Success, Partial, Failure, NA (Not Applicable). The value may not be provided directly by the sources, in which case it is derived from other event fields, for example, the EventResultDetails field."
+                    },
+                    {
+                      "name": "EventResultDetails",
+                      "type": "String",
+                      "description": "The details associated with the event result. This field is typically populated when the result is a failure."
+                    },
+                    {
+                      "name": "EventOriginalUid",
+                      "type": "String",
+                      "description": "A unique ID of the original record, if provided by the source."
+                    },
+                    {
+                      "name": "EventOriginalType",
+                      "type": "String",
+                      "description": "The original event type or ID, if provided by the source."
+                    },
+                    {
+                      "name": "EventOriginalSubType",
+                      "type": "String",
+                      "description": "The original event subtype or ID, if provided by the source."
+                    },
+                    {
+                      "name": "EventOriginalResultDetails",
+                      "type": "String",
+                      "description": "The original result details provided by the source."
+                    },
+                    {
+                      "name": "EventSeverity",
+                      "type": "String",
+                      "description": "The severity of the event. Valid values are: Informational, Low, Medium, or High."
+                    },
+                    {
+                      "name": "EventOriginalSeverity",
+                      "type": "String",
+                      "description": "The original severity as provided by the reporting device. "
+                    },
+                    {
+                      "name": "EventProduct",
+                      "type": "String",
+                      "description": "The product generating the event."
+                    },
+                    {
+                      "name": "EventProductVersion",
+                      "type": "String",
+                      "description": "The version of the product generating the event."
+                    },
+                    {
+                      "name": "EventVendor",
+                      "type": "String",
+                      "description": "The vendor of the product generating the event."
+                    },
+                    {
+                      "name": "EventSchemaVersion",
+                      "type": "String",
+                      "description": "The version of the schema."
+                    },
+                    {
+                      "name": "EventOwner",
+                      "type": "String",
+                      "description": "The owner of the event, which is usually the department or subsidiary in which it was generated."
+                    },
+                    {
+                      "name": "EventReportUrl",
+                      "type": "String",
+                      "dataTypeHint": "URI",
+                      "description": "A URL provided in the event for a resource that provides more information about the event."
+                    },
+                    {
+                      "name": "RuleName",
+                      "type": "String",
+                      "description": "The name or ID of the rule associated with the inspection results."
+                    },
+                    {
+                      "name": "RuleNumber",
+                      "type": "Int",
+                      "description": "The number of the rule associated with the inspection results."
+                    },
+                    {
+                      "name": "ThreatId",
+                      "type": "String",
+                      "description": "The ID of the threat or malware identified in the audit activity."
+                    },
+                    {
+                      "name": "ThreatName",
+                      "type": "String",
+                      "description": "The name of the threat or malware identified in the audit activity."
+                    },
+                    {
+                      "name": "ThreatCategory",
+                      "type": "String",
+                      "description": "The category of the threat or malware identified in audit activity."
+                    },
+                    {
+                      "name": "ThreatRiskLevel",
+                      "type": "Int",
+                      "description": "The risk level associated with the identified threat. The level should be a number between 0 and 100."
+                    },
+                    {
+                      "name": "ThreatOriginalRiskLevel",
+                      "type": "String",
+                      "description": "The risk level as reported by the reporting device."
+                    },
+                    {
+                      "name": "ThreatConfidence",
+                      "type": "Int",
+                      "description": "The confidence level of the threat identified, normalized to a value between 0 and a 100."
+                    },
+                    {
+                      "name": "ThreatOriginalConfidence",
+                      "type": "String",
+                      "description": "The original confidence level of the threat identified, as reported by the reporting device."
+                    },
+                    {
+                      "name": "ThreatIsActive",
+                      "type": "Bool",
+                      "description": "True if the threat identified is considered an active threat."
+                    },
+                    {
+                      "name": "ThreatFirstReportedTime",
+                      "type": "DateTime",
+                      "description": "The first time the IP address or domain were identified as a threat."
+                    },
+                    {
+                      "name": "ThreatLastReportedTime",
+                      "type": "DateTime",
+                      "description": "The last time the IP address or domain were identified as a threat."
+                    },
+                    {
+                      "name": "ThreatField",
+                      "type": "String",
+                      "description": "The field for which a threat was identified."
+                    },
+                    {
+                      "name": "ThreatIpAddr",
+                      "type": "String",
+                      "dataTypeHint": "IP",
+                      "description": "An IP address for which a threat was identified."
+                    },
+                    {
+                      "name": "DvcIpAddr",
+                      "type": "String",
+                      "dataTypeHint": "IP",
+                      "description": "The IP Address of the device reporting the event."
+                    },
+                    {
+                      "name": "DvcHostname",
+                      "type": "String",
+                      "description": "The hostname of the device reporting the event."
+                    },
+                    {
+                      "name": "DvcDomain",
+                      "type": "String",
+                      "description": "The domain of the device reporting the event."
+                    },
+                    {
+                      "name": "DvcDomainType",
+                      "type": "String",
+                      "description": "The type of DvcDomain."
+                    },
+                    {
+                      "name": "DvcFQDN",
+                      "type": "String",
+                      "description": "The hostname of the device on which the event occurred or which reported the event."
+                    },
+                    {
+                      "name": "DvcDescription",
+                      "type": "String",
+                      "description": "A descriptive text associated with the device."
+                    },
+                    {
+                      "name": "DvcId",
+                      "type": "String",
+                      "description": "The unique ID of the device on which the event occurred or which reported the event."
+                    },
+                    {
+                      "name": "DvcIdType",
+                      "type": "String",
+                      "description": "The type of DvcId."
+                    },
+                    {
+                      "name": "DvcMacAddr",
+                      "type": "String",
+                      "dataTypeHint": "IP",
+                      "description": "The MAC address of the device on which the event occurred or which reported the event."
+                    },
+                    {
+                      "name": "DvcZone",
+                      "type": "String",
+                      "description": "The network on which the event occurred or which reported the event."
+                    },
+                    {
+                      "name": "DvcOs",
+                      "type": "String",
+                      "description": "The operating system running on the device on which the event occurred or which reported the event."
+                    },
+                    {
+                      "name": "DvcOsVersion",
+                      "type": "String",
+                      "description": "The version of the operating system on the device on which the event occurred or which reported the event."
+                    },
+                    {
+                      "name": "DvcAction",
+                      "type": "String",
+                      "description": "For reporting security systems, the action taken by the system."
+                    },
+                    {
+                      "name": "DvcOriginalAction",
+                      "type": "String",
+                      "description": "The original DvcAction as provided by the reporting device."
+                    },
+                    {
+                      "name": "DvcInterface",
+                      "type": "String",
+                      "description": "The network interface on which data was captured."
+                    },
+                    {
+                      "name": "DvcScopeId",
+                      "type": "String",
+                      "description": "The cloud platform scope ID the device belongs to. DvcScopeId map to a subscription ID on Azure and to an account ID on AWS."
+                    },
+                    {
+                      "name": "DvcScope",
+                      "type": "String",
+                      "description": "The cloud platform scope the device belongs to. DvcScope map to a subscription ID on Azure and to an account ID on AWS."
+                    },
+                    {
+                      "name": "ActorUserId",
+                      "type": "String",
+                      "description": "A machine-readable, alphanumeric, unique representation of the actor."
+                    },
+                    {
+                      "name": "ActorUserIdType",
+                      "type": "String",
+                      "description": "The type of the ID stored in the ActorUserId field."
+                    },
+                    {
+                      "name": "ActorScopeId",
+                      "type": "String",
+                      "description": "The scope ID, such as Azure AD tenant ID, in which ActorUserId and ActorUsername are defined."
+                    },
+                    {
+                      "name": "ActorScope",
+                      "type": "String",
+                      "description": "The scope, such as Azure AD tenant, in which ActorUserId and ActorUsername are defined."
+                    },
+                    {
+                      "name": "ActorUsername",
+                      "type": "String",
+                      "description": "The Actor's username, including domain information when available."
+                    },
+                    {
+                      "name": "ActorUsernameType",
+                      "type": "String",
+                      "description": "Specifies the type of the user name stored in the ActorUsername field."
+                    },
+                    {
+                      "name": "ActorUserType",
+                      "type": "String",
+                      "description": "The type of the Actor."
+                    },
+                    {
+                      "name": "ActorOriginalUserType",
+                      "type": "String",
+                      "description": "The user type as reported by the reporting device."
+                    },
+                    {
+                      "name": "ActorSessionId",
+                      "type": "String",
+                      "description": "The unique ID of the sign-in session of the Actor."
+                    },
+                    {
+                      "name": "ActingAppId",
+                      "type": "String",
+                      "description": "The ID of the application authorizing on behalf of the actor, including a process, browser, or service."
+                    },
+                    {
+                      "name": "ActingAppName",
+                      "type": "String",
+                      "description": "The name of the application authorizing on behalf of the actor, including a process, browser, or service."
+                    },
+                    {
+                      "name": "ActingAppType",
+                      "type": "String",
+                      "description": "The type of acting application."
+                    },
+                    {
+                      "name": "HttpUserAgent",
+                      "type": "String",
+                      "description": "When authentication is performed over HTTP or HTTPS, this field's value is the user_agent HTTP header provided by the acting application when performing the authentication."
+                    },
+                    {
+                      "name": "TargetUserId",
+                      "type": "String",
+                      "description": "A machine-readable, alphanumeric, unique representation of the actor."
+                    },
+                    {
+                      "name": "TargetUserIdType",
+                      "type": "String",
+                      "description": "The type of the ID stored in the TargetUserId field."
+                    },
+                    {
+                      "name": "TargetScopeId",
+                      "type": "String",
+                      "description": "The scope ID, such as Azure AD tenant ID, in which TargetUserId and TargetUsername are defined."
+                    },
+                    {
+                      "name": "TargetScope",
+                      "type": "String",
+                      "description": "The scope, such as Azure AD tenant, in which TargetUserId and TargetUsername are defined."
+                    },
+                    {
+                      "name": "TargetUsername",
+                      "type": "String",
+                      "description": "The Target actor's username, including domain information when available."
+                    },
+                    {
+                      "name": "TargetUsernameType",
+                      "type": "String",
+                      "description": "The type of the Target actor's username specified in TargetUsername field"
+                    },
+                    {
+                      "name": "TargetUserType",
+                      "type": "String",
+                      "description": "The type of the Target actor."
+                    },
+                    {
+                      "name": "TargetOriginalUserType",
+                      "type": "String",
+                      "description": "The user type as reported by the reporting device."
+                    },
+                    {
+                      "name": "TargetSessionId",
+                      "type": "String",
+                      "description": "The unique ID of the sign-in session of the Target actor."
+                    },
+                    {
+                      "name": "TargetAppId",
+                      "type": "String",
+                      "description": "The ID of the application to which the authorization is required, often assigned by the reporting device."
+                    },
+                    {
+                      "name": "TargetAppName",
+                      "type": "String",
+                      "description": "The name of the application to which the authorization is required, including a service, a URL, or a SaaS application."
+                    },
+                    {
+                      "name": "TargetAppType",
+                      "type": "String",
+                      "description": "The type of the application authorizing on behalf of the Actor."
+                    },
+                    {
+                      "name": "TargetUrl",
+                      "type": "String",
+                      "dataTypeHint": "URI",
+                      "description": "A URL associated with the target application."
+                    },
+                    {
+                      "name": "SrcIpAddr",
+                      "type": "String",
+                      "dataTypeHint": "IP",
+                      "description": "The IP address of the source device."
+                    },
+                    {
+                      "name": "SrcPortNumber",
+                      "type": "Int",
+                      "description": "The IP port from which the connection originated."
+                    },
+                    {
+                      "name": "SrcHostname",
+                      "type": "String",
+                      "description": "The source device hostname, excluding domain information."
+                    },
+                    {
+                      "name": "SrcDomain",
+                      "type": "String",
+                      "description": "The domain of the source device."
+                    },
+                    {
+                      "name": "SrcDomainType",
+                      "type": "String",
+                      "description": "The type of SrcDomain."
+                    },
+                    {
+                      "name": "SrcFQDN",
+                      "type": "String",
+                      "description": "The source device hostname, including domain information when available."
+                    },
+                    {
+                      "name": "SrcDescription",
+                      "type": "String",
+                      "description": "A descriptive text associated with the source device."
+                    },
+                    {
+                      "name": "SrcDvcId",
+                      "type": "String",
+                      "description": "The ID of the source device."
+                    },
+                    {
+                      "name": "SrcDvcIdType",
+                      "type": "String",
+                      "description": "The type of SrcDvcId."
+                    },
+                    {
+                      "name": "SrcDvcScopeId",
+                      "type": "String",
+                      "description": "The cloud platform scope ID the source device belongs to. SrcDvcScopeId map to a subscription ID on Azure and to an account ID on AWS."
+                    },
+                    {
+                      "name": "SrcDvcScope",
+                      "type": "String",
+                      "description": "The cloud platform scope the source device belongs to. SrcDvcScope map to a subscription ID on Azure and to an account ID on AWS."
+                    },
+                    {
+                      "name": "SrcDeviceType",
+                      "type": "String",
+                      "description": "The type of the source device."
+                    },
+                    {
+                      "name": "SrcGeoCountry",
+                      "type": "String",
+                      "description": "The country associated with the source IP address."
+                    },
+                    {
+                      "name": "SrcGeoLatitude",
+                      "type": "Real",
+                      "description": "The latitude of the geographical coordinate associated with the source IP address."
+                    },
+                    {
+                      "name": "SrcGeoLongitude",
+                      "type": "Real",
+                      "description": "The longitude of the geographical coordinate associated with the source IP address."
+                    },
+                    {
+                      "name": "SrcGeoRegion",
+                      "type": "String",
+                      "description": "The region within a country associated with the source IP address."
+                    },
+                    {
+                      "name": "SrcGeoCity",
+                      "type": "String",
+                      "description": "The city associated with the source IP address."
+                    },
+                    {
+                      "name": "SrcRiskLevel",
+                      "type": "Int",
+                      "description": "The risk level associated with the identified Source."
+                    },
+                    {
+                      "name": "SrcOriginalRiskLevel",
+                      "type": "String",
+                      "description": "The risk level associaeted with the identified Source as reported by the reporting device."
+                    },
+                    {
+                      "name": "SrcIsp",
+                      "type": "String",
+                      "description": "The Internet Service Provider (ISP) used by the source device to connect to the internet."
+                    },
+                    {
+                      "name": "SrcDvcOs",
+                      "type": "String",
+                      "description": "The OS of the source device."
+                    },
+                    {
+                      "name": "TargetIpAddr",
+                      "type": "String",
+                      "dataTypeHint": "IP",
+                      "description": "The IP address of the target device."
+                    },
+                    {
+                      "name": "TargetPortNumber",
+                      "type": "Int",
+                      "description": "The port of the target device."
+                    },
+                    {
+                      "name": "TargetHostname",
+                      "type": "String",
+                      "description": "The target device hostname, excluding domain information."
+                    },
+                    {
+                      "name": "TargetDomain",
+                      "type": "String",
+                      "description": "The domain of the target device."
+                    },
+                    {
+                      "name": "TargetDomainType",
+                      "type": "String",
+                      "description": "The type of TargetDomain."
+                    },
+                    {
+                      "name": "TargetFQDN",
+                      "type": "String",
+                      "description": "The target device hostname, including domain information when available."
+                    },
+                    {
+                      "name": "TargetDescription",
+                      "type": "String",
+                      "description": "A descriptive text associated with the target device."
+                    },
+                    {
+                      "name": "TargetDvcId",
+                      "type": "String",
+                      "description": "The ID of the target device."
+                    },
+                    {
+                      "name": "TargetDvcIdType",
+                      "type": "String",
+                      "description": "The type of TargetDvcId."
+                    },
+                    {
+                      "name": "TargetDvcScopeId",
+                      "type": "String",
+                      "description": "The cloud platform scope ID the target device belongs to. TargetDvcScopeId map to a subscription ID on Azure and to an account ID on AWS."
+                    },
+                    {
+                      "name": "TargetDvcScope",
+                      "type": "String",
+                      "description": "The cloud platform scope the target device belongs to. TargetDvcScope map to a subscription ID on Azure and to an account ID on AWS."
+                    },
+                    {
+                      "name": "TargetDeviceType",
+                      "type": "String",
+                      "description": "The type of the target device."
+                    },
+                    {
+                      "name": "TargetGeoCountry",
+                      "type": "String",
+                      "description": "The country associated with the target IP address."
+                    },
+                    {
+                      "name": "TargetGeoLatitude",
+                      "type": "Real",
+                      "description": "The latitude of the geographical coordinate associated with the target IP address."
+                    },
+                    {
+                      "name": "TargetGeoLongitude",
+                      "type": "Real",
+                      "description": "The longitude of the geographical coordinate associated with the target IP address."
+                    },
+                    {
+                      "name": "TargetGeoRegion",
+                      "type": "String",
+                      "description": "The region within a country associated with the target IP address."
+                    },
+                    {
+                      "name": "TargetGeoCity",
+                      "type": "String",
+                      "description": "The city associated with the target IP address."
+                    },
+                    {
+                      "name": "TargetRiskLevel",
+                      "type": "Int",
+                      "description": "The risk level associated with the target."
+                    },
+                    {
+                      "name": "TargetOriginalRiskLevel",
+                      "type": "String",
+                      "description": "The risk level associated with the target, as reported by the reporting device."
+                    },
+                    {
+                      "name": "TargetDvcOs",
+                      "type": "String",
+                      "description": "The OS of the target device."
+                    },
+                    {
+                      "name": "LogonMethod",
+                      "type": "String",
+                      "description": "The method used to perform authentication."
+                    },
+                    {
+                      "name": "LogonProtocol",
+                      "type": "String",
+                      "description": "The protocol used to perform authentication."
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "[concat(variables('loganalyticsworkspace'),'/',variables('norm-table-csregistry'))]",
+              "type": "Microsoft.OperationalInsights/workspaces/tables",
+              "apiVersion": "2022-10-01",
+              "tags": {},
+              "properties": {
+                "plan": "Analytics",
+                "schema": {
+                  "name": "[variables('norm-table-csregistry')]",
+                  "columns": [
+                    {
+                      "name": "TimeGenerated",
+                      "type": "Datetime",
+                      "description": "The timestamp (UTC) reflecting the time in which the event was generated."
+                    },
+                    {
+                      "name": "AdditionalFields",
+                      "type": "dynamic",
+                      "description": "Additional information, represented using key/value pairs provided by the source which do not map to ASim."
+                    },
+                    {
+                      "name": "EventMessage",
+                      "type": "String",
+                      "description": "A general message or description."
+                    },
+                    {
+                      "name": "EventCount",
+                      "type": "Int",
+                      "description": "The number of events described by the record."
+                    },
+                    {
+                      "name": "EventStartTime",
+                      "type": "Datetime",
+                      "description": "The time in which the event started. If the source supports aggregation and the record represents multiple events, the time that the first event was generated. If not provided by the source record, this field aliases the TimeGenerated field."
+                    },
+                    {
+                      "name": "EventEndTime",
+                      "type": "Datetime",
+                      "description": "The time in which the event ended. If the source supports aggregation and the record represents multiple events, the time that the last event was generated. If not provided by the source record, this field aliases the TimeGenerated field."
+                    },
+                    {
+                      "name": "EventType",
+                      "type": "String",
+                      "description": "Describes the operation reported by the record."
+                    },
+                    {
+                      "name": "EventSubType",
+                      "type": "String",
+                      "description": "Describes a subdivision of the operation reported in the EventType field."
+                    },
+                    {
+                      "name": "EventResult",
+                      "type": "String",
+                      "description": "The outcome of the event, represented by one of the following values: Success, Partial, Failure, NA (Not Applicable). The value may not be provided directly by the sources, in which case it is derived from other event fields, for example, the EventResultDetails field."
+                    },
+                    {
+                      "name": "EventResultDetails",
+                      "type": "String",
+                      "description": "Reason or details for the result reported in the EventResult field."
+                    },
+                    {
+                      "name": "EventOriginalUid",
+                      "type": "String",
+                      "description": "A unique ID of the original record, if provided by the source."
+                    },
+                    {
+                      "name": "EventOriginalType",
+                      "type": "String",
+                      "description": "The original event type or ID, if provided by the source."
+                    },
+                    {
+                      "name": "EventOriginalSubType",
+                      "type": "String",
+                      "description": "The original event subtype or ID, if provided by the source."
+                    },
+                    {
+                      "name": "EventOriginalResultDetails",
+                      "type": "String",
+                      "description": "The original result details provided by the source."
+                    },
+                    {
+                      "name": "EventSeverity",
+                      "type": "String",
+                      "description": "The severity of the event. Valid values are: Informational, Low, Medium, or High."
+                    },
+                    {
+                      "name": "EventOriginalSeverity",
+                      "type": "String",
+                      "description": "The original severity as provided by the reporting device. "
+                    },
+                    {
+                      "name": "EventProduct",
+                      "type": "String",
+                      "description": "The product generating the event."
+                    },
+                    {
+                      "name": "EventProductVersion",
+                      "type": "String",
+                      "description": "The version of the product generating the event."
+                    },
+                    {
+                      "name": "EventVendor",
+                      "type": "String",
+                      "description": "The vendor of the product generating the event."
+                    },
+                    {
+                      "name": "EventSchemaVersion",
+                      "type": "String",
+                      "description": "The version of the schema."
+                    },
+                    {
+                      "name": "EventOwner",
+                      "type": "String",
+                      "description": "The owner of the event, which is usually the department or subsidiary in which it was generated."
+                    },
+                    {
+                      "name": "EventReportUrl",
+                      "type": "String",
+                      "description": "A URL provided in the event for a resource that provides more information about the event."
+                    },
+                    {
+                      "name": "DvcIpAddr",
+                      "type": "String",
+                      "description": "The IP Address of the device reporting the event."
+                    },
+                    {
+                      "name": "DvcHostname",
+                      "type": "String",
+                      "description": "The hostname of the device reporting the event."
+                    },
+                    {
+                      "name": "DvcDomain",
+                      "type": "String",
+                      "description": "The domain of the device reporting the event."
+                    },
+                    {
+                      "name": "DvcDomainType",
+                      "type": "String",
+                      "description": "The type of DvcDomain."
+                    },
+                    {
+                      "name": "DvcFQDN",
+                      "type": "String",
+                      "description": "The hostname of the device on which the event occurred or which reported the event."
+                    },
+                    {
+                      "name": "DvcDescription",
+                      "type": "String",
+                      "description": "A descriptive text associated with the device."
+                    },
+                    {
+                      "name": "DvcId",
+                      "type": "String",
+                      "description": "The unique ID of the device on which the event occurred or which reported the event."
+                    },
+                    {
+                      "name": "DvcIdType",
+                      "type": "String",
+                      "description": "The type of DvcId."
+                    },
+                    {
+                      "name": "DvcMacAddr",
+                      "type": "String",
+                      "description": "The MAC address of the device on which the event occurred or which reported the event."
+                    },
+                    {
+                      "name": "DvcZone",
+                      "type": "String",
+                      "description": "The network on which the event occurred or which reported the event."
+                    },
+                    {
+                      "name": "DvcOs",
+                      "type": "String",
+                      "description": "The operating system running on the device on which the event occurred or which reported the event."
+                    },
+                    {
+                      "name": "DvcOsVersion",
+                      "type": "String",
+                      "description": "The version of the operating system on the device on which the event occurred or which reported the event."
+                    },
+                    {
+                      "name": "DvcAction",
+                      "type": "String",
+                      "description": "For reporting security systems, the action taken by the system."
+                    },
+                    {
+                      "name": "DvcOriginalAction",
+                      "type": "String",
+                      "description": "The original DvcAction as provided by the reporting device."
+                    },
+                    {
+                      "name": "DvcInterface",
+                      "type": "String",
+                      "description": "The network interface on which data was captured."
+                    },
+                    {
+                      "name": "DvcScopeId",
+                      "type": "String",
+                      "description": "The cloud platform scope ID the device belongs to. DvcScopeId map to a subscription ID on Azure and to an account ID on AWS."
+                    },
+                    {
+                      "name": "DvcScope",
+                      "type": "String",
+                      "description": "The cloud platform scope the device belongs to. DvcScope map to a subscription ID on Azure and to an account ID on AWS."
+                    },
+                    {
+                      "name": "ActorUserId",
+                      "type": "String",
+                      "description": "A unique ID of the Actor."
+                    },
+                    {
+                      "name": "ActorUserIdType",
+                      "type": "String",
+                      "description": "The type of the ID stored in the ActorUserId field."
+                    },
+                    {
+                      "name": "ActorScopeId",
+                      "type": "String",
+                      "description": "The scope ID, such as Azure AD tenant ID, in which ActorUserId and ActorUsername are defined."
+                    },
+                    {
+                      "name": "ActorScope",
+                      "type": "String",
+                      "description": "The scope, such as Azure AD tenant, in which ActorUserId and ActorUsername are defined."
+                    },
+                    {
+                      "name": "ActorUsername",
+                      "type": "String",
+                      "description": "The user name of the user who initiated the event."
+                    },
+                    {
+                      "name": "ActorUsernameType",
+                      "type": "String",
+                      "description": "Specifies the type of the user name stored in the ActorUsername field."
+                    },
+                    {
+                      "name": "ActorSessionId",
+                      "type": "String",
+                      "description": "The unique ID of the login session of the Actor"
+                    },
+                    {
+                      "name": "ActingProcessName",
+                      "type": "String",
+                      "description": "The file name of the acting process image file."
+                    },
+                    {
+                      "name": "ActingProcessId",
+                      "type": "String",
+                      "description": "The process ID of the acting process."
+                    },
+                    {
+                      "name": "ActingProcessGuid",
+                      "type": "String",
+                      "description": "A generated unique identifier of the acting process."
+                    },
+                    {
+                      "name": "ParentProcessName",
+                      "type": "String",
+                      "description": "The file name of the parent process image file."
+                    },
+                    {
+                      "name": "ParentProcessId",
+                      "type": "String",
+                      "description": "The process ID of the parent process."
+                    },
+                    {
+                      "name": "ParentProcessGuid",
+                      "type": "String",
+                      "description": "A generated unique identifier of the parent process."
+                    },
+                    {
+                      "name": "RegistryKey",
+                      "type": "String",
+                      "description": "The registry key associated with the operation, normalized to standard root key naming conventions."
+                    },
+                    {
+                      "name": "RegistryValue",
+                      "type": "String",
+                      "description": "The registry value associated with the operation."
+                    },
+                    {
+                      "name": "RegistryValueType",
+                      "type": "String",
+                      "description": "The type of registry value, normalized to standard form."
+                    },
+                    {
+                      "name": "RegistryValueData",
+                      "type": "String",
+                      "description": "The data stored in the registry value."
+                    },
+                    {
+                      "name": "RegistryPreviousKey",
+                      "type": "String",
+                      "description": "For operations that modify the registry, the original registry key, normalized to standard root key naming"
+                    },
+                    {
+                      "name": "RegistryPreviousValue",
+                      "type": "String",
+                      "description": "For operations that modify the registry, the original value type, normalized to the standard form."
+                    },
+                    {
+                      "name": "RegistryPreviousValueType",
+                      "type": "String",
+                      "description": "For operations that modify the registry, the original value type."
+                    },
+                    {
+                      "name": "RegistryPreviousValueData",
+                      "type": "String",
+                      "description": "The original registry data, for operations that modify the registry."
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "[concat(variables('loganalyticsworkspace'),'/',variables('norm-table-csusermgmt'))]",
+              "type": "Microsoft.OperationalInsights/workspaces/tables",
+              "apiVersion": "2022-10-01",
+              "tags": {},
+              "properties": {
+                "plan": "Analytics",
+                "schema": {
+                  "name": "[variables('norm-table-csusermgmt')]",
+                  "columns": [
+                    {
+                      "name": "TimeGenerated",
+                      "type": "Datetime",
+                      "description": "The timestamp (UTC) reflecting the time in which the event was generated."
+                    },
+                    {
+                      "name": "AdditionalFields",
+                      "type": "dynamic",
+                      "description": "Additional information, represented using key/value pairs provided by the source which do not map to ASim."
+                    },
+                    {
+                      "name": "EventMessage",
+                      "type": "String",
+                      "description": "A general message or description."
+                    },
+                    {
+                      "name": "EventCount",
+                      "type": "Int",
+                      "description": "The number of events described by the record."
+                    },
+                    {
+                      "name": "EventStartTime",
+                      "type": "Datetime",
+                      "description": "The time in which the event started. If the source supports aggregation and the record represents multiple events, the time that the first event was generated. If not provided by the source record, this field aliases the TimeGenerated field."
+                    },
+                    {
+                      "name": "EventEndTime",
+                      "type": "Datetime",
+                      "description": "The time in which the event ended. If the source supports aggregation and the record represents multiple events, the time that the last event was generated. If not provided by the source record, this field aliases the TimeGenerated field."
+                    },
+                    {
+                      "name": "EventType",
+                      "type": "String",
+                      "description": "Describes the operation reported by the record"
+                    },
+                    {
+                      "name": "EventSubType",
+                      "type": "String",
+                      "description": "Describes a subdivision of the operation reported in the EventType field."
+                    },
+                    {
+                      "name": "EventResult",
+                      "type": "String",
+                      "description": "The outcome of the event, represented by one of the following values: Success, Partial, Failure, NA (Not Applicable). The value may not be provided directly by the sources, in which case it is derived from other event fields, for example, the EventResultDetails field."
+                    },
+                    {
+                      "name": "EventResultDetails",
+                      "type": "String",
+                      "description": "Reason or details for the result reported in the EventResult field."
+                    },
+                    {
+                      "name": "EventOriginalUid",
+                      "type": "String",
+                      "description": "A unique ID of the original record, if provided by the source."
+                    },
+                    {
+                      "name": "EventOriginalType",
+                      "type": "String",
+                      "description": "The original event type or ID, if provided by the source."
+                    },
+                    {
+                      "name": "EventOriginalSubType",
+                      "type": "String",
+                      "description": "The original event subtype or ID, if provided by the source."
+                    },
+                    {
+                      "name": "EventOriginalResultDetails",
+                      "type": "String",
+                      "description": "The original result details provided by the source."
+                    },
+                    {
+                      "name": "EventSeverity",
+                      "type": "String",
+                      "description": "The severity of the event. Valid values are: Informational, Low, Medium, or High."
+                    },
+                    {
+                      "name": "EventOriginalSeverity",
+                      "type": "String",
+                      "description": "The original severity as provided by the reporting device. "
+                    },
+                    {
+                      "name": "EventProduct",
+                      "type": "String",
+                      "description": "The product generating the event."
+                    },
+                    {
+                      "name": "EventProductVersion",
+                      "type": "String",
+                      "description": "The version of the product generating the event."
+                    },
+                    {
+                      "name": "EventVendor",
+                      "type": "String",
+                      "description": "The vendor of the product generating the event."
+                    },
+                    {
+                      "name": "EventSchemaVersion",
+                      "type": "String",
+                      "description": "The version of the schema."
+                    },
+                    {
+                      "name": "EventOwner",
+                      "type": "String",
+                      "description": "The owner of the event, which is usually the department or subsidiary in which it was generated."
+                    },
+                    {
+                      "name": "EventReportUrl",
+                      "type": "String",
+                      "description": "A URL provided in the event for a resource that provides more information about the event."
+                    },
+                    {
+                      "name": "DvcIpAddr",
+                      "type": "String",
+                      "description": "The IP Address of the device reporting the event."
+                    },
+                    {
+                      "name": "DvcHostname",
+                      "type": "String",
+                      "description": "The hostname of the device reporting the event."
+                    },
+                    {
+                      "name": "DvcDomain",
+                      "type": "String",
+                      "description": "The domain of the device reporting the event."
+                    },
+                    {
+                      "name": "DvcDomainType",
+                      "type": "String",
+                      "description": "The type of DvcDomain."
+                    },
+                    {
+                      "name": "DvcFQDN",
+                      "type": "String",
+                      "description": "The hostname of the device on which the event occurred or which reported the event."
+                    },
+                    {
+                      "name": "DvcDescription",
+                      "type": "String",
+                      "description": "A descriptive text associated with the device."
+                    },
+                    {
+                      "name": "DvcId",
+                      "type": "String",
+                      "description": "The unique ID of the device on which the event occurred or which reported the event."
+                    },
+                    {
+                      "name": "DvcIdType",
+                      "type": "String",
+                      "description": "The type of DvcId."
+                    },
+                    {
+                      "name": "DvcMacAddr",
+                      "type": "String",
+                      "description": "The MAC address of the device on which the event occurred or which reported the event."
+                    },
+                    {
+                      "name": "DvcZone",
+                      "type": "String",
+                      "description": "The network on which the event occurred or which reported the event."
+                    },
+                    {
+                      "name": "DvcOs",
+                      "type": "String",
+                      "description": "The operating system running on the device on which the event occurred or which reported the event."
+                    },
+                    {
+                      "name": "DvcOsVersion",
+                      "type": "String",
+                      "description": "The version of the operating system on the device on which the event occurred or which reported the event."
+                    },
+                    {
+                      "name": "DvcAction",
+                      "type": "String",
+                      "description": "For reporting security systems, the action taken by the system."
+                    },
+                    {
+                      "name": "DvcOriginalAction",
+                      "type": "String",
+                      "description": "The original DvcAction as provided by the reporting device."
+                    },
+                    {
+                      "name": "DvcInterface",
+                      "type": "String",
+                      "description": "The network interface on which data was captured."
+                    },
+                    {
+                      "name": "DvcScopeId",
+                      "type": "String",
+                      "description": "The cloud platform scope ID the device belongs to. DvcScopeId map to a subscription ID on Azure and to an account ID on AWS."
+                    },
+                    {
+                      "name": "DvcScope",
+                      "type": "String",
+                      "description": "The cloud platform scope the device belongs to. DvcScope map to a subscription ID on Azure and to an account ID on AWS."
+                    },
+                    {
+                      "name": "ActorUserId",
+                      "type": "String",
+                      "description": "A machine-readable, alphanumeric, unique representation of the actor."
+                    },
+                    {
+                      "name": "ActorUserIdType",
+                      "type": "String",
+                      "description": "The type of the ID stored in the ActorUserId field."
+                    },
+                    {
+                      "name": "ActorScopeId",
+                      "type": "String",
+                      "description": "The scope ID, such as Azure AD tenant ID, in which ActorUserId and ActorUsername are defined."
+                    },
+                    {
+                      "name": "ActorScope",
+                      "type": "String",
+                      "description": "The scope, such as Azure AD tenant, in which ActorUserId and ActorUsername are defined."
+                    },
+                    {
+                      "name": "ActorUsername",
+                      "type": "String",
+                      "description": "The Actor's username, including domain information when available."
+                    },
+                    {
+                      "name": "ActorUsernameType",
+                      "type": "String",
+                      "description": "Specifies the type of the user name stored in the ActorUsername field."
+                    },
+                    {
+                      "name": "ActorUserType",
+                      "type": "String",
+                      "description": "The type of the Actor."
+                    },
+                    {
+                      "name": "ActorOriginalUserType",
+                      "type": "String",
+                      "description": "The original actor user type, if provided by the source."
+                    },
+                    {
+                      "name": "ActorSessionId",
+                      "type": "String",
+                      "description": "The unique ID of the sign-in session of the Actor."
+                    },
+                    {
+                      "name": "TargetUserId",
+                      "type": "String",
+                      "description": "A machine-readable, alphanumeric, unique representation of the target user."
+                    },
+                    {
+                      "name": "TargetUserIdType",
+                      "type": "String",
+                      "description": "The type of the ID stored in the TargetUserId field."
+                    },
+                    {
+                      "name": "TargetScopeId",
+                      "type": "String",
+                      "description": "The scope ID, such as Azure AD tenant ID, in which TargetUserId and TargetUsername are defined."
+                    },
+                    {
+                      "name": "TargetScope",
+                      "type": "String",
+                      "description": "The scope, such as Azure AD tenant, in which TargetUserId and TargetUsername are defined."
+                    },
+                    {
+                      "name": "TargetUsername",
+                      "type": "String",
+                      "description": "The target username, including domain information when available."
+                    },
+                    {
+                      "name": "TargetUsernameType",
+                      "type": "String",
+                      "description": "Specifies the type of the username stored in the TargetUsername field."
+                    },
+                    {
+                      "name": "TargetUserType",
+                      "type": "String",
+                      "description": "The type of target user."
+                    },
+                    {
+                      "name": "TargetOriginalUserType",
+                      "type": "String",
+                      "description": "The original destination user type, if provided by the source."
+                    },
+                    {
+                      "name": "GroupId",
+                      "type": "String",
+                      "description": "A machine-readable, alphanumeric, unique representation of the group, for activities involving a group."
+                    },
+                    {
+                      "name": "GroupIdType",
+                      "type": "String",
+                      "description": "The type of the ID stored in the GroupId field."
+                    },
+                    {
+                      "name": "GroupName",
+                      "type": "String",
+                      "description": "The group name, including domain information when available, for activities involving a group."
+                    },
+                    {
+                      "name": "GroupNameType",
+                      "type": "String",
+                      "description": "Specifies the type of the group name stored in the GroupName field."
+                    },
+                    {
+                      "name": "GroupType",
+                      "type": "String",
+                      "description": "The type of the group, for activities involving a group."
+                    },
+                    {
+                      "name": "GroupOriginalType",
+                      "type": "String",
+                      "description": "The original group type, if provided by the source."
+                    },
+                    {
+                      "name": "SrcIpAddr",
+                      "type": "String",
+                      "description": "The IP address of the source device."
+                    },
+                    {
+                      "name": "SrcPortNumber",
+                      "type": "Int",
+                      "description": "The Source IP port from which the connection originated."
+                    },
+                    {
+                      "name": "SrcHostname",
+                      "type": "String",
+                      "description": "The source device hostname, excluding domain information."
+                    },
+                    {
+                      "name": "SrcDomain",
+                      "type": "String",
+                      "description": "The domain of the source device."
+                    },
+                    {
+                      "name": "SrcDomainType",
+                      "type": "String",
+                      "description": "The type of SrcDomain."
+                    },
+                    {
+                      "name": "SrcFQDN",
+                      "type": "String",
+                      "description": "The source device hostname, including domain information when available."
+                    },
+                    {
+                      "name": "SrcDescription",
+                      "type": "String",
+                      "description": "A descriptive text associated with the source device."
+                    },
+                    {
+                      "name": "SrcDvcId",
+                      "type": "String",
+                      "description": "The ID of the source device as reported in the record."
+                    },
+                    {
+                      "name": "SrcDvcIdType",
+                      "type": "String",
+                      "description": "The type of SrcDvcId."
+                    },
+                    {
+                      "name": "SrcDvcScopeId",
+                      "type": "String",
+                      "description": "The cloud platform scope ID the source device belongs to. SrcDvcScopeId map to a subscription ID on Azure and to an account ID on AWS."
+                    },
+                    {
+                      "name": "SrcDvcScope",
+                      "type": "String",
+                      "description": "The cloud platform scope the source device belongs to. SrcDvcScope map to a subscription ID on Azure and to an account ID on AWS."
+                    },
+                    {
+                      "name": "SrcDeviceType",
+                      "type": "String",
+                      "description": "The type of the source device."
+                    },
+                    {
+                      "name": "SrcGeoCountry",
+                      "type": "String",
+                      "description": "The country associated with the source IP address."
+                    },
+                    {
+                      "name": "SrcGeoLatitude",
+                      "type": "Real",
+                      "description": "The latitude of the geographical coordinate associated with the source IP address."
+                    },
+                    {
+                      "name": "SrcGeoLongitude",
+                      "type": "Real",
+                      "description": "The longitude of the geographical coordinate associated with the source IP address."
+                    },
+                    {
+                      "name": "SrcGeoRegion",
+                      "type": "String",
+                      "description": "The region within a country associated with the source IP address."
+                    },
+                    {
+                      "name": "SrcGeoCity",
+                      "type": "String",
+                      "description": "The city associated with the source IP address."
+                    },
+                    {
+                      "name": "SrcRiskLevel",
+                      "type": "Int",
+                      "description": "The risk level associated with the identified Source."
+                    },
+                    {
+                      "name": "SrcOriginalRiskLevel",
+                      "type": "String",
+                      "description": "The risk level associaeted with the identified Source as reported by the reporting device."
+                    },
+                    {
+                      "name": "ActingAppId",
+                      "type": "String",
+                      "description": "The ID of the application used by the actor to perform the activity, including a process, browser, or service."
+                    },
+                    {
+                      "name": "ActingAppName",
+                      "type": "String",
+                      "description": "The name of the application used by the actor to perform the activity, including a process, browser, or service."
+                    },
+                    {
+                      "name": "ActingAppType",
+                      "type": "String",
+                      "description": "The type of acting application."
+                    },
+                    {
+                      "name": "HttpUserAgent",
+                      "type": "String",
+                      "description": "When authentication is performed over HTTP or HTTPS, this field's value is the user_agent HTTP header provided by the acting application when performing the authentication."
+                    },
+                    {
+                      "name": "PreviousPropertyValue",
+                      "type": "String",
+                      "description": "The previous value that was stored in the specified property."
+                    },
+                    {
+                      "name": "NewPropertyValue",
+                      "type": "String",
+                      "description": "The new value stored in the specified property."
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "[concat(variables('loganalyticsworkspace'),'/',variables('cust-table-additionaldata'))]",
+              "type": "Microsoft.OperationalInsights/workspaces/tables",
+              "apiVersion": "2022-10-01",
+              "tags": {},
+              "properties": {
+                "plan": "Analytics",
+                "schema": {
+                  "name": "[variables('cust-table-additionaldata')]",
+                  "columns": [
+                    {
+                      "name": "TimeGenerated",
+                      "type": "DateTime",
+                      "isDefaultDisplay": true,
+                      "description": "The timestamp (UTC) reflecting the time in which the event was generated."
+                    },
+                    {
+                      "name": "event_simpleName",
+                      "type": "string"
+                    },
+                    {
+                      "name": "timestamp",
+                      "type": "long"
+                    },
+                    {
+                      "name": "aip",
+                      "type": "string"
+                    },
+                    {
+                      "name": "aid",
+                      "type": "string"
+                    },
+                    {
+                      "name": "event_platform",
+                      "type": "string"
+                    },
+                    {
+                      "name": "ConfigStateHash",
+                      "type": "string"
+                    },
+                    {
+                      "name": "ContextProcessId",
+                      "type": "string"
+                    },
+                    {
+                      "name": "BoundingLimitCount",
+                      "type": "long"
+                    },
+                    {
+                      "name": "ConfigBuild",
+                      "type": "string"
+                    },
+                    {
+                      "name": "Entitlements",
+                      "type": "string"
+                    },
+                    {
+                      "name": "name",
+                      "type": "string"
+                    },
+                    {
+                      "name": "CrowdStrikeId",
+                      "type": "string"
+                    },
+                    {
+                      "name": "EffectiveTransmissionClass",
+                      "type": "string"
+                    },
+                    {
+                      "name": "cid",
+                      "type": "string"
+                    },
+                    {
+                      "name": "SystemUptimeSeconds",
+                      "type": "long"
+                    },
+                    {
+                      "name": "ContextTimeStamp",
+                      "type": "real"
+                    },
+                    {
+                      "name": "TamperFilterFlags",
+                      "type": "string"
+                    },
+                    {
+                      "name": "LogonType",
+                      "type": "string"
+                    },
+                    {
+                      "name": "UserPrincipal",
+                      "type": "string"
+                    },
+                    {
+                      "name": "UserIsAdmin",
+                      "type": "string"
+                    },
+					{
+                      "name": "UserName",
+                      "type": "string"
+                    },
+                    {
+                      "name": "SuppressType",
+                      "type": "string"
+                    },
+                    {
+                      "name": "ProcessCount",
+                      "type": "long"
+                    },
+                    {
+                      "name": "EtwTargetRawProcessId",
+                      "type": "string"
+                    },
+                    {
+                      "name": "MinorFunction",
+                      "type": "string"
+                    },
+                    {
+                      "name": "FileObject",
+                      "type": "string"
+                    },
+                    {
+                      "name": "IrpFlags",
+                      "type": "string"
+                    },
+                    {
+                      "name": "MajorFunction",
+                      "type": "string"
+                    },
+                    {
+                      "name": "OperationFlags",
+                      "type": "string"
+                    },
+                    {
+                      "name": "SignatureErrorState",
+                      "type": "string"
+                    },
+                    {
+                      "name": "SHA1HashData",
+                      "type": "string"
+                    },
+                    {
+                      "name": "SignatureState",
+                      "type": "string"
+                    },
+                    {
+                      "name": "AuthenticodeHashData",
+                      "type": "string"
+                    },
+                    {
+                      "name": "ToBeSignedAlgorithm",
+                      "type": "string"
+                    },
+                    {
+                      "name": "ToBeSignedHash",
+                      "type": "string"
+                    },
+                    {
+                      "name": "SignInfoRequestFlags",
+                      "type": "string"
+                    },
+                    {
+                      "name": "SignerInfoCount",
+                      "type": "long"
+                    },
+                    {
+                      "name": "HashAlgorithm",
+                      "type": "string"
+                    },
+                    {
+                      "name": "RegObjectName",
+                      "type": "string"
+                    },
+                    {
+                      "name": "RegValueName",
+                      "type": "string"
+                    },
+                    {
+                      "name": "RegType",
+                      "type": "string"
+                    },
+                    {
+                      "name": "RegClassificationIndex",
+                      "type": "string"
+                    },
+                    {
+                      "name": "RegClassificationFlags",
+                      "type": "string"
+                    },
+                    {
+                      "name": "RegOperationType",
+                      "type": "string"
+                    },
+                    {
+                      "name": "RegClassification",
+                      "type": "string"
+                    },
+                    {
+                      "name": "RegStringValue",
+                      "type": "string"
+                    },
+                    {
+                      "name": "Facility",
+                      "type": "string"
+                    },
+                    {
+                      "name": "File",
+                      "type": "string"
+                    },
+                    {
+                      "name": "BatchTimestamp",
+                      "type": "real"
+                    },
+                    {
+                      "name": "SpotlightBatchType",
+                      "type": "string"
+                    },
+                    {
+                      "name": "LastUpdateInstalledTime",
+                      "type": "string"
+                    },
+                    {
+                      "name": "PendingUpdateIds",
+                      "type": "string"
+                    },
+                    {
+                      "name": "LastPendingUpdateInstalledTime",
+                      "type": "string"
+                    },
+                    {
+                      "name": "InstalledUpdateIds",
+                      "type": "string"
+                    },
+                    {
+                      "name": "InstalledUpdateExtendedStatus",
+                      "type": "string"
+                    },
+                    {
+                      "name": "UninstallPendingUpdateIds",
+                      "type": "string"
+                    },
+                    {
+                      "name": "RawTargetProcessId",
+                      "type": "string"
+                    },
+                    {
+                      "name": "TargetThreadId",
+                      "type": "string"
+                    },
+                    {
+                      "name": "ApcContextFileName",
+                      "type": "string"
+                    },
+                    {
+                      "name": "RawTargetThreadId",
+                      "type": "string"
+                    },
+                    {
+                      "name": "FirmwareAnalysisErrorLocation",
+                      "type": "string"
+                    },
+                    {
+                      "name": "FirmwareAnalysisErrorSource",
+                      "type": "string"
+                    },
+                    {
+                      "name": "FirmwareAnalysisErrorReason",
+                      "type": "string"
+                    },
+                    {
+                      "name": "InjectedThreadFlag",
+                      "type": "string"
+                    },
+                    {
+                      "name": "ApcFlags",
+                      "type": "string"
+                    },
+                    {
+                      "name": "DownloadServer",
+                      "type": "string"
+                    },
+                    {
+                      "name": "DownloadPath",
+                      "type": "string"
+                    },
+                    {
+                      "name": "DownloadPort",
+                      "type": "string"
+                    },
+                    {
+                      "name": "RemediationTriggerTimeStamp",
+                      "type": "real"
+                    },
+                    {
+                      "name": "VolumeMountPoint",
+                      "type": "string"
+                    },
+                    {
+                      "name": "VolumeDriveLetter",
+                      "type": "string"
+                    },
+                    {
+                      "name": "DiskParentDeviceInstanceId",
+                      "type": "string"
+                    },
+                    {
+                      "name": "PtStatusFlags",
+                      "type": "string"
+                    },
+                    {
+                      "name": "PtCompatibilityFlags",
+                      "type": "string"
+                    },
+                    {
+                      "name": "TargetDirectoryName",
+                      "type": "string"
+                    },
+                    {
+                      "name": "ThreadStartBytes",
+                      "type": "string"
+                    },
+                    {
+                      "name": "MaxUsedRam",
+                      "type": "string"
+                    },
+                    {
+                      "name": "UsedDiskSpace",
+                      "type": "string"
+                    },
+                    {
+                      "name": "AverageUsedRam",
+                      "type": "string"
+                    },
+                    {
+                      "name": "AverageCpuUsage",
+                      "type": "string"
+                    },
+                    {
+                      "name": "AvailableDiskSpace",
+                      "type": "string"
+                    },
+                    {
+                      "name": "MaxCpuUsage",
+                      "type": "string"
+                    },
+                    {
+                      "name": "ReflectivePeTimestamp",
+                      "type": "real"
+                    },
+                    {
+                      "name": "ProcessExecuteFlags",
+                      "type": "string"
+                    },
+                    {
+                      "name": "DriverPreventionStatusFlags",
+                      "type": "string"
+                    },
+                    {
+                      "name": "TargetIntegrityLevel",
+                      "type": "string"
+                    },
+                    {
+                      "name": "TargetAuthenticationId",
+                      "type": "string"
+                    },
+                    {
+                      "name": "ImageBaseName",
+                      "type": "string"
+                    },
+                    {
+                      "name": "ConnectionDirection",
+                      "type": "string"
+                    },
+                    {
+                      "name": "ConnectionFlags",
+                      "type": "string"
+                    },
+                    {
+                      "name": "LocalPort",
+                      "type": "string"
+                    },
+                    {
+                      "name": "MemoryDescriptionFlags",
+                      "type": "string"
+                    },
+                    {
+                      "name": "AppName",
+                      "type": "string"
+                    },
+                    {
+                      "name": "AppVersion",
+                      "type": "string"
+                    },
+                    {
+                      "name": "UpdateFlag",
+                      "type": "string"
+                    },
+                    {
+                      "name": "AppPathFlag",
+                      "type": "string"
+                    },
+                    {
+                      "name": "AppUpdateIds",
+                      "type": "string"
+                    },
+                    {
+                      "name": "AppProductId",
+                      "type": "string"
+                    },
+                    {
+                      "name": "AppPath",
+                      "type": "string"
+                    },
+                    {
+                      "name": "InstallDate",
+                      "type": "string"
+                    },
+                    {
+                      "name": "AppType",
+                      "type": "string"
+                    },
+                    {
+                      "name": "AppSource",
+                      "type": "string"
+                    },
+                    {
+                      "name": "AppProvider",
+                      "type": "string"
+                    },
+                    {
+                      "name": "AppIdentificationData",
+                      "type": "string"
+                    },
+                    {
+                      "name": "AppArchitecture",
+                      "type": "string"
+                    },
+                    {
+                      "name": "CommandCloudTimeStamp",
+                      "type": "real"
+                    },
+                    {
+                      "name": "CommandSequenceTotal",
+                      "type": "int"
+                    },
+                    {
+                      "name": "CommandCode",
+                      "type": "string"
+                    },
+                    {
+                      "name": "CommandEndTimeStamp",
+                      "type": "real"
+                    },
+                    {
+                      "name": "CommandStartTimeStamp",
+                      "type": "real"
+                    },
+                    {
+                      "name": "CommandSequenceNumber",
+                      "type": "string"
+                    },
+                    {
+                      "name": "CommandName",
+                      "type": "string"
+                    },
+                    {
+                      "name": "CommandStdOut",
+                      "type": "string"
+                    },
+                    {
+                      "name": "CommandStdErr",
+                      "type": "string"
+                    },
+                    {
+                      "name": "QuarantinedFileState",
+                      "type": "string"
+                    },
+                    {
+                      "name": "QuarantinedFileName",
+                      "type": "string"
+                    },
+                    {
+                      "name": "FileSystemOperationType",
+                      "type": "string"
+                    },
+                    {
+                      "name": "FsOperationClassificationFlags",
+                      "type": "string"
+                    },
+                    {
+                      "name": "TargetSHA256HashData",
+                      "type": "string"
+                    },
+                    {
+                      "name": "TargetCommandLineParameters",
+                      "type": "string"
+                    },
+                    {
+                      "name": "RegConfigValueType",
+                      "type": "string"
+                    },
+                    {
+                      "name": "RegConfigFlags",
+                      "type": "string"
+                    },
+                    {
+                      "name": "RegConfigClass",
+                      "type": "string"
+                    },
+                    {
+                      "name": "RegConfigIndex",
+                      "type": "string"
+                    },
+                    {
+                      "name": "RegKeyChangeType",
+                      "type": "string"
+                    },
+                    {
+                      "name": "Options",
+                      "type": "string"
+                    },
+                    {
+                      "name": "Information",
+                      "type": "string"
+                    },
+                    {
+                      "name": "FileIdentifier",
+                      "type": "string"
+                    },
+                    {
+                      "name": "ShareAccess",
+                      "type": "string"
+                    },
+                    {
+                      "name": "FileAttributes",
+                      "type": "string"
+                    },
+                    {
+                      "name": "HandleCreateAuthenticationId",
+                      "type": "string"
+                    },
+                    {
+                      "name": "FileEcpBitmask",
+                      "type": "string"
+                    },
+                    {
+                      "name": "ProvisioningDuration",
+                      "type": "string"
+                    },
+                    {
+                      "name": "AgentLoadFlags",
+                      "type": "string"
+                    },
+                    {
+                      "name": "EtwProvidersError",
+                      "type": "string"
+                    },
+                    {
+                      "name": "EtwProvidersEnabled",
+                      "type": "string"
+                    },
+                    {
+                      "name": "EtwProviders",
+                      "type": "string"
+                    },
+                    {
+                      "name": "DriverLoadFlags",
+                      "type": "string"
+                    },
+                    {
+                      "name": "ImageTimeStamp",
+                      "type": "real"
+                    },
+                    {
+                      "name": "ExclusionType",
+                      "type": "string"
+                    },
+                    {
+                      "name": "CommandHistory",
+                      "type": "string"
+                    },
+                    {
+                      "name": "FirstCommand",
+                      "type": "string"
+                    },
+                    {
+                      "name": "CommandCountMax",
+                      "type": "long"
+                    },
+                    {
+                      "name": "CommandCount",
+                      "type": "long"
+                    },
+                    {
+                      "name": "DeviceProductId",
+                      "type": "string"
+                    },
+                    {
+                      "name": "BluetoothDeviceType",
+                      "type": "string"
+                    },
+                    {
+                      "name": "BluetoothDeviceAddressType",
+                      "type": "string"
+                    },
+                    {
+                      "name": "BluetoothDeviceAddress",
+                      "type": "string"
+                    },
+                    {
+                      "name": "BluetoothDeviceName",
+                      "type": "string"
+                    },
+                    {
+                      "name": "DeviceVendorId",
+                      "type": "string"
+                    },
+                    {
+                      "name": "AmsiStatusCode",
+                      "type": "string"
+                    },
+                    {
+                      "name": "AmsiRegistrationState",
+                      "type": "string"
+                    },
+                    {
+                      "name": "SourceEndpointNetworkType",
+                      "type": "string"
+                    },
+                    {
+                      "name": "TargetAccountObjectGuid",
+                      "type": "string"
+                    },
+                    {
+                      "name": "SourceAccountUserPrincipal",
+                      "type": "string"
+                    },
+                    {
+                      "name": "SourceEndpointAccountObjectSid",
+                      "type": "string"
+                    },
+                    {
+                      "name": "ActiveDirectoryAuthenticationMethod",
+                      "type": "string"
+                    },
+                    {
+                      "name": "SourceAccountType",
+                      "type": "string"
+                    },
+                    {
+                      "name": "AggregationEarliestTimestamp",
+                      "type": "real"
+                    },
+                    {
+                      "name": "TargetAccountObjectSid",
+                      "type": "string"
+                    },
+                    {
+                      "name": "SourceAccountObjectSid",
+                      "type": "string"
+                    },
+                    {
+                      "name": "AggregationWindowTimestamp",
+                      "type": "real"
+                    },
+                    {
+                      "name": "SourceAccountDomain",
+                      "type": "string"
+                    },
+                    {
+                      "name": "TargetAccountType",
+                      "type": "string"
+                    },
+                    {
+                      "name": "NtlmAvFlags",
+                      "type": "string"
+                    },
+                    {
+                      "name": "SourceAccountObjectGuid",
+                      "type": "string"
+                    },
+                    {
+                      "name": "AggregationLatestTimestamp",
+                      "type": "real"
+                    },
+                    {
+                      "name": "DeviceTimeStamp",
+                      "type": "real"
+                    },
+                    {
+                      "name": "ParentHubInstanceId",
+                      "type": "string"
+                    },
+                    {
+                      "name": "DeviceProduct",
+                      "type": "string"
+                    },
+                    {
+                      "name": "ParentHubPort",
+                      "type": "string"
+                    },
+                    {
+                      "name": "DeviceProtocol",
+                      "type": "string"
+                    },
+                    {
+                      "name": "DcPolicyFlags",
+                      "type": "string"
+                    },
+                    {
+                      "name": "DeviceVersion",
+                      "type": "string"
+                    },
+                    {
+                      "name": "DeviceInstanceId",
+                      "type": "string"
+                    },
+                    {
+                      "name": "DeviceUserSid",
+                      "type": "string"
+                    },
+                    {
+                      "name": "DeviceUserAuthenticationId",
+                      "type": "string"
+                    },
+                    {
+                      "name": "SocketType",
+                      "type": "string"
+                    },
+                    {
+                      "name": "SourceAccountSamAccountName",
+                      "type": "string"
+                    },
+                    {
+                      "name": "KerberosRequestTicketValidityPeriod",
+                      "type": "string"
+                    },
+                    {
+                      "name": "DelegatorAccountObjectSid",
+                      "type": "string"
+                    },
+                    {
+                      "name": "DelegatorAccountObjectGuid",
+                      "type": "string"
+                    },
+                    {
+                      "name": "DelegatorAccountSamAccountName",
+                      "type": "string"
+                    },
+                    {
+                      "name": "DesiredKerberosEncryptionTypes",
+                      "type": "string"
+                    },
+                    {
+                      "name": "DcPropertyIdInterfaceType",
+                      "type": "string"
+                    },
+                    {
+                      "name": "DcSensorInterfaceType",
+                      "type": "string"
+                    },
+                    {
+                      "name": "DomainName",
+                      "type": "string"
+                    },
+                    {
+                      "name": "AmsScanTypeId",
+                      "type": "string"
+                    },
+                    {
+                      "name": "AmsStatus",
+                      "type": "string"
+                    },
+                    {
+                      "name": "AmsScanSubtypeId",
+                      "type": "string"
+                    },
+                    {
+                      "name": "VnodeModificationType",
+                      "type": "string"
+                    },
+                    {
+                      "name": "LdapSecurityType",
+                      "type": "string"
+                    },
+                    {
+                      "name": "StackLimit",
+                      "type": "string"
+                    },
+                    {
+                      "name": "ObjectTypeEtw",
+                      "type": "string"
+                    },
+                    {
+                      "name": "SessionProcessId",
+                      "type": "string"
+                    },
+                    {
+                      "name": "ModuleCharacteristics",
+                      "type": "string"
+                    },
+                    {
+                      "name": "HostUrl",
+                      "type": "string"
+                    },
+                    {
+                      "name": "FileFormatString",
+                      "type": "string"
+                    },
+                    {
+                      "name": "MemoryScanFlags",
+                      "type": "string"
+                    },
+                    {
+                      "name": "AmsDeviceType",
+                      "type": "string"
+                    },
+                    {
+                      "name": "AsepFlags",
+                      "type": "string"
+                    },
+                    {
+                      "name": "AsepValueType",
+                      "type": "string"
+                    },
+                    {
+                      "name": "AuthenticationFailureMsErrorCode",
+                      "type": "string"
+                    },
+                    {
+                      "name": "SourceAccountBadPasswordCount",
+                      "type": "long"
+                    },
+                    {
+                      "name": "SourceAccountBadPasswordTime",
+                      "type": "string"
+                    },
+                    {
+                      "name": "EndpointDescriptorInterval",
+                      "type": "string"
+                    },
+                    {
+                      "name": "EndpointDescriptorMaxPacketSize",
+                      "type": "string"
+                    },
+                    {
+                      "name": "EndpointDescriptorAddress",
+                      "type": "string"
+                    },
+                    {
+                      "name": "EndpointDescriptorAttributes",
+                      "type": "string"
+                    },
+                    {
+                      "name": "ConfigurationDescriptorValue",
+                      "type": "string"
+                    },
+                    {
+                      "name": "ConfigurationDescriptorAttributes",
+                      "type": "string"
+                    },
+                    {
+                      "name": "ConfigurationDescriptorName",
+                      "type": "string"
+                    },
+                    {
+                      "name": "ConfigurationDescriptorNumInterfaces",
+                      "type": "string"
+                    },
+                    {
+                      "name": "ConfigurationDescriptorMaxPowerDraw",
+                      "type": "string"
+                    },
+                    {
+                      "name": "InterfaceDescriptorNumber",
+                      "type": "string"
+                    },
+                    {
+                      "name": "InterfaceDescriptorAlternateSetting",
+                      "type": "string"
+                    },
+                    {
+                      "name": "InterfaceDescriptorNumEndpoints",
+                      "type": "string"
+                    },
+                    {
+                      "name": "InterfaceDescriptorName",
+                      "type": "string"
+                    },
+                    {
+                      "name": "DcTypeOrLocation",
+                      "type": "string"
+                    },
+                    {
+                      "name": "SideChannelMitigationFlags",
+                      "type": "string"
+                    },
+                    {
+                      "name": "AgentLocalTime",
+                      "type": "real"
+                    },
+                    {
+                      "name": "ComputerName",
+                      "type": "string"
+                    },
+                    {
+                      "name": "ChassisType",
+                      "type": "string"
+                    },
+                    {
+                      "name": "TpmFirmwareVersion",
+                      "type": "string"
+                    },
+                    {
+                      "name": "BaseTime",
+                      "type": "real"
+                    },
+                    {
+                      "name": "TpmType",
+                      "type": "string"
+                    },
+                    {
+                      "name": "SignInfoFlagUnknownError",
+                      "type": "string"
+                    },
+                    {
+                      "name": "UTCTimestamp",
+                      "type": "real"
+                    },
+                    {
+                      "name": "SubjectDN",
+                      "type": "string"
+                    },
+                    {
+                      "name": "SignatureDigestEncryptAlg",
+                      "type": "string"
+                    },
+                    {
+                      "name": "SignInfoFlagSignHashMismatch",
+                      "type": "string"
+                    },
+                    {
+                      "name": "SubjectSerialNumber",
+                      "type": "string"
+                    },
+                    {
+                      "name": "IssuerDN",
+                      "type": "string"
+                    },
+                    {
+                      "name": "SubjectCN",
+                      "type": "string"
+                    },
+                    {
+                      "name": "ExternalApiType",
+                      "type": "string"
+                    },
+                    {
+                      "name": "SignInfoFlagSelfSigned",
+                      "type": "string"
+                    },
+                    {
+                      "name": "product_type_desc",
+                      "type": "string"
+                    },
+                    {
+                      "name": "event_type",
+                      "type": "string"
+                    },
+                    {
+                      "name": "StartTimestamp",
+                      "type": "real"
+                    },
+                    {
+                      "name": "HostnameField",
+                      "type": "string"
+                    },
+                    {
+                      "name": "OriginSourceIpAddress",
+                      "type": "string"
+                    },
+                    {
+                      "name": "SHA1String",
+                      "type": "string"
+                    },
+                    {
+                      "name": "ProcessStartTime",
+                      "type": "real"
+                    },
+                    {
+                      "name": "ProcessEndTime",
+                      "type": "real"
+                    },
+                    {
+                      "name": "DnsRequests",
+                      "type": "string"
+                    },
+                    {
+                      "name": "PatternDispositionFlags",
+                      "type": "string"
+                    },
+                    {
+                      "name": "FileName",
+                      "type": "string"
+                    },
+                    {
+                      "name": "LocalIP",
+                      "type": "string"
+                    },
+                    {
+                      "name": "FilePath",
+                      "type": "string"
+                    },
+                    {
+                      "name": "EventUUID",
+                      "type": "string"
+                    },
+                    {
+                      "name": "MD5String",
+                      "type": "string"
+                    },
+                    {
+                      "name": "SeverityName",
+                      "type": "string"
+                    },
+                    {
+                      "name": "Severity",
+                      "type": "string"
+                    },
+                    {
+                      "name": "SHA256String",
+                      "type": "string"
+                    },
+                    {
+                      "name": "NetworkAccesses",
+                      "type": "string"
+                    },
+                    {
+                      "name": "MACAddress",
+                      "type": "string"
+                    },
+                    {
+                      "name": "ProcessId",
+                      "type": "string"
+                    },
+                    {
+                      "name": "BillingType",
+                      "type": "string"
+                    },
+                    {
+                      "name": "RegNumericValue",
+                      "type": "string"
+                    },
+                    {
+                      "name": "RegBinaryValue",
+                      "type": "string"
+                    },
+                    {
+                      "name": "RpcOpClassification",
+                      "type": "string"
+                    },
+                    {
+                      "name": "AdditionalFields",
+                      "type": "dynamic"
+                    }
+                  ]
+                }
+              }
+            },
+            {
+              "name": "[concat(variables('loganalyticsworkspace'),'/',variables('cust-table-secondary'))]",
+              "type": "Microsoft.OperationalInsights/workspaces/tables",
+              "apiVersion": "2022-10-01",
+              "tags": {},
+              "properties": {
+                "plan": "Analytics",
+                "schema": {
+                  "name": "[variables('cust-table-secondary')]",
+                  "columns": [
+                    {
+                      "name": "TimeGenerated",
+                      "type": "DateTime",
+                      "isDefaultDisplay": true,
+                      "description": "The timestamp (UTC) reflecting the time in which the event was generated."
+                    },
+                    {
+                      "name": "FolderName",
+                      "type": "string"
+                    },
+                    {
+                      "name": "AdditionalFields",
+                      "type": "dynamic"
+                    }
+                  ]
+                }
+              }
+            },
             {
               "condition": "[variables('flag-raw-copy-normdata')]",
               "name": "[concat(variables('loganalyticsworkspace'),'/',variables('cust-table-csaudit'))]",
