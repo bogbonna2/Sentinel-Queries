@@ -1,0 +1,37 @@
+let known_domains = dynamic([
+    "*office365.com*", "*google.com*", "*samsungcloudsolution.com*", "*office.com*", 
+    "*facebook.com*", "*microsoft.com*", "*yahoo.com*", "*outlook.com*", 
+    "*windows.com*", "*windowsupdate.com*", "*skype.com*", "*worldtime.com*", 
+    "*ntp.org*", "*amazonaws.com*", "*azure.com*"
+]);
+let known_ips = dynamic(["104.42.157.189", "54.183.120.141", "54.183.135.80", 
+    "54.183.140.32", "54.183.142.105", "169.254.169.254", "199.91.190.4"]);
+let known_subnets = ExternalData(ip_range:string) 
+    ["https://path-to-HJAW_Foreign_EQH_Subnets.csv"] 
+    with (format="csv");
+let guest_wifi_ips = ExternalData(src_ip:string) 
+    ["https://path-to-DMTS_HJAW_GuestWifi.csv"] 
+    with (format="csv");
+let scanner_ips = ExternalData(scanner_ip:string) 
+    ["https://path-to-axa_scanner_ips.csv"] 
+    with (format="csv");
+
+CommonSecurityLog
+| where Action in ("allowed", "allow", "alert")
+| where not(Url has_any (known_domains))
+| where not (DestinationIp in (known_ips))
+| where not (SourceIp in (scanner_ips))
+| where not (SourceIp in (guest_wifi_ips))
+| where not (SourceIp in (known_subnets))
+| extend fqdn = iff(isipv4(DestinationIp), DestinationIp, Url)
+| summarize 
+    count_src = dcount(SourceIp), 
+    fqdn_urls = make_set(Url), 
+    users = make_set(User), 
+    apps = make_set(App), 
+    avg_bytes_in = avg(BytesReceived), 
+    src_ips = make_set(SourceIp), 
+    dest_ips = make_set(DestinationIp) 
+    by fqdn, bin(TimeGenerated, 15m)
+| where count_src >= 20
+| project TimeGenerated, src_ips, dest_ips, fqdn, fqdn_urls, users, apps, avg_bytes_in, count_src
